@@ -717,7 +717,6 @@ elif menu == "Prediksi":
     st.title("Prediksi Kanker Kulit dari Gambar")
 
     # Add debugging prints for TensorFlow and Keras versions
-    import keras
     st.write(f"TensorFlow version: {tf.__version__}")
     st.write(f"Keras version: {keras.__version__}")
 
