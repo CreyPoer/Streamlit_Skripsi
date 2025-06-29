@@ -8,8 +8,8 @@ from PIL import Image
 from sklearn.preprocessing import LabelEncoder
 import tempfile
 import os
-from keras.preprocessing import image
-from keras.utils import img_to_array
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras.utils import img_to_array
 
 # Sidebar Navigation
 menu = st.sidebar.selectbox(
