@@ -56,7 +56,7 @@ if menu == "Beranda":
     """)
 
     st.markdown("### Perancangan Sistem")
-    st.image("asset/perancangan-sistem.png", caption="Diagram Perancangan Sistem", use_container_width=True)
+    st.image("asset/perancangan-sistem.png", caption="Diagram Perancangan Sistem")
 
     st.markdown("### Skenario Uji Coba")
 
@@ -183,7 +183,7 @@ elif menu == "Preprocessing":
             st.markdown("**Channel Merah (R):**")
             red_only = np.zeros_like(resized_image)
             red_only[:, :, 0] = resized_image[:, :, 0] * 255
-            st.image(red_only.astype("uint8"), caption="Merah (dalam RGB)", use_container_width=True)
+            st.image(red_only.astype("uint8"), caption="Merah (dalam RGB)")
             st.caption(f"Ukuran: {resized_image[:, :, 0].shape}")  # (64, 64)
             st.code(f"{R[:10]} ...")
 
@@ -191,7 +191,7 @@ elif menu == "Preprocessing":
             st.markdown("**Channel Hijau (G):**")
             green_only = np.zeros_like(resized_image)
             green_only[:, :, 1] = resized_image[:, :, 1] * 255
-            st.image(green_only.astype("uint8"), caption="Hijau (dalam RGB)", use_container_width=True)
+            st.image(green_only.astype("uint8"), caption="Hijau (dalam RGB)")
             st.caption(f"Ukuran: {resized_image[:, :, 1].shape}")
             st.code(f"{G[:10]} ...")
 
@@ -199,7 +199,7 @@ elif menu == "Preprocessing":
             st.markdown("**Channel Biru (B):**")
             blue_only = np.zeros_like(resized_image)
             blue_only[:, :, 2] = resized_image[:, :, 2] * 255
-            st.image(blue_only.astype("uint8"), caption="Biru (dalam RGB)", use_container_width=True)
+            st.image(blue_only.astype("uint8"), caption="Biru (dalam RGB)")
             st.caption(f"Ukuran: {resized_image[:, :, 2].shape}")
             st.code(f"{B[:10]} ...")
 
@@ -243,7 +243,7 @@ elif menu == "Preprocessing":
         "Label Numerik": label_numerik
     })
 
-    st.dataframe(label_df, use_container_width=True)
+    st.dataframe(label_df)
 
     # ========== Sub Preprocessing - Penerapan Random Oversampling pada Data Train ==============
 
@@ -257,7 +257,7 @@ elif menu == "Preprocessing":
     Berikut adalah diagram alur proses ROS dalam penelitian ini:
     """)
 
-    st.image("asset/alurros.png", caption="Alur Proses Random Oversampling", use_container_width=True)
+    st.image("asset/alurros.png", caption="Alur Proses Random Oversampling")
 
     st.markdown("""
     #### Langkah-langkah Proses ROS:
@@ -309,7 +309,7 @@ elif menu == "Preprocessing":
 
     """)
 
-    st.image("asset/hasilros.png", caption="Perbandingan Data Train Sebelum dan Sesudah ROS", use_container_width=True)
+    st.image("asset/hasilros.png", caption="Perbandingan Data Train Sebelum dan Sesudah ROS")
 
     # ========== Sub Preprocessing - Data De-Transformasi ==============
 
@@ -406,25 +406,25 @@ elif menu == "Preprocessing":
             st.markdown("**Rotasi 10°**")
             rot_gen = ImageDataGenerator(rotation_range=10)
             rot_img = next(rot_gen.flow(img_array_expanded, batch_size=1))[0].astype("float32") / 255.0
-            st.image(rot_img, caption="Rotasi", use_container_width=True)
+            st.image(rot_img, caption="Rotasi")
 
         with col2:
             st.markdown("**Geser Horizontal 10%**")
             shift_w_gen = ImageDataGenerator(width_shift_range=0.1)
             shift_w_img = next(shift_w_gen.flow(img_array_expanded, batch_size=1))[0].astype("float32") / 255.0
-            st.image(shift_w_img, caption="Geser X", use_container_width=True)
+            st.image(shift_w_img, caption="Geser X")
 
         with col3:
             st.markdown("**Geser Vertikal 10%**")
             shift_h_gen = ImageDataGenerator(height_shift_range=0.1)
             shift_h_img = next(shift_h_gen.flow(img_array_expanded, batch_size=1))[0].astype("float32") / 255.0
-            st.image(shift_h_img, caption="Geser Y", use_container_width=True)
+            st.image(shift_h_img, caption="Geser Y")
 
         with col4:
             st.markdown("**Zoom 10%**")
             zoom_gen = ImageDataGenerator(zoom_range=0.1)
             zoom_img = next(zoom_gen.flow(img_array_expanded, batch_size=1))[0].astype("float32") / 255.0
-            st.image(zoom_img, caption="Zoom", use_container_width=True)
+            st.image(zoom_img, caption="Zoom")
 
         # NORMALISASI
         st.markdown("### Perbandingan Nilai Piksel Sebelum dan Sesudah Normalisasi")
@@ -465,7 +465,7 @@ elif menu == "Pelatihan Model":
     Model ini dibangun dengan menyusun sendiri layer-layer konvolusi dan blok *inverted residual* seperti arsitektur MobileNetV2 asli, namun tanpa memanfaatkan bobot pre-trained. Model dilatih dari awal menggunakan data yang telah seimbang dan ditransformasikan.
     """)
 
-    st.image("asset/mobilenetv2manual.jpg", caption="Struktur Arsitektur CNN Manual", use_container_width=True)
+    st.image("asset/mobilenetv2manual.jpg", caption="Struktur Arsitektur CNN Manual")
 
     st.markdown("#### Tabel Arsitektur CNN Manual per Layer:")
     import pandas as pd
@@ -514,7 +514,7 @@ elif menu == "Pelatihan Model":
     }
 
     df_manual = pd.DataFrame(tabel_manual)
-    st.dataframe(df_manual, use_container_width=True)
+    st.dataframe(df_manual)
 
     st.markdown("#### Kode Arsitektur CNN Manual:")
     st.code("""
@@ -533,7 +533,7 @@ model.compile(optimizer=SGD(learning_rate=0.001, momentum=0.9),
     Model ini menggunakan arsitektur **MobileNetV2** yang telah dilatih sebelumnya pada dataset ImageNet. Teknik ini dikenal sebagai **Transfer Learning**. Semua layer dari model pre-trained dibuat **trainable** (fine-tuned) agar dapat menyesuaikan terhadap citra dermoskopi yang digunakan.
     """)
 
-    st.image("asset/pretrainedmobilenetv2.jpg", caption="Struktur Transfer Learning MobileNetV2", use_container_width=True)
+    st.image("asset/pretrainedmobilenetv2.jpg", caption="Struktur Transfer Learning MobileNetV2")
 
     st.markdown("#### Kode Implementasi:")
     st.code("""
@@ -564,7 +564,7 @@ def create_model():
     """)
 
     st.markdown("#### Ilustrasi:")
-    st.image("asset/kfold_ilustrasi.PNG", caption="Skema 5-Fold Cross Validation", use_container_width=True)
+    st.image("asset/kfold_ilustrasi.PNG", caption="Skema 5-Fold Cross Validation")
 
 
 # ===================== EVALUASI =====================
@@ -689,26 +689,26 @@ elif menu == "Evaluasi Model":
 
         # --- Pelatihan ---
         st.subheader("Hasil Pelatihan (Fold Terbaik)")
-        st.dataframe(pd.DataFrame(sk["train_table"]), use_container_width=True)
+        st.dataframe(pd.DataFrame(sk["train_table"]))
 
         col_acc, col_loss = st.columns(2)
         with col_acc:
-            st.image(sk["train_imgs"][0], caption="Akurasi - Fold Terbaik", use_container_width=True)
+            st.image(sk["train_imgs"][0], caption="Akurasi - Fold Terbaik")
         with col_loss:
-            st.image(sk["train_imgs"][1], caption="Loss - Fold Terbaik", use_container_width=True)
+            st.image(sk["train_imgs"][1], caption="Loss - Fold Terbaik")
 
         # --- Pengujian ---
         st.subheader("Hasil Pengujian Model Terbaik")
         st.markdown(f"**Akurasi Pengujian:** {sk['test_akurasi']}")
 
         st.markdown("#### Tabel Metrik Evaluasi:")
-        st.dataframe(pd.DataFrame(sk["test_metrics"]).set_index(""), use_container_width=True)
+        st.dataframe(pd.DataFrame(sk["test_metrics"]).set_index(""))
 
         st.markdown("#### Visualisasi Confusion Matrix:")
-        st.image(sk["conf_matrix"], use_container_width=True)
+        st.image(sk["conf_matrix"])
 
         st.markdown("#### Kurva ROC:")
-        st.image(sk["roc"], use_container_width=True)
+        st.image(sk["roc"])
 
         st.markdown("---")
 
@@ -731,7 +731,7 @@ elif menu == "Prediksi":
         uploaded_image = st.file_uploader("Upload gambar kulit", type=["jpg", "jpeg", "png"])
         if uploaded_image:
             image = Image.open(uploaded_image).convert("RGB")
-            st.image(image, caption="Gambar Asli", use_container_width=True)
+            st.image(image, caption="Gambar Asli")
 
             if st.button("Preprocessing"):
                 resized = image.resize((64, 64))
@@ -741,7 +741,7 @@ elif menu == "Prediksi":
                 st.success("Preprocessing selesai.")
 
             if "img_array" in st.session_state:
-                st.image(st.session_state["img_resized"], caption="Gambar Resize", use_container_width=True)
+                st.image(st.session_state["img_resized"], caption="Gambar Resize")
                 if st.button("Prediksi"):
                     pred = model.predict(st.session_state["img_array"])
                     idx = np.argmax(pred)
