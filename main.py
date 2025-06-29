@@ -716,10 +716,6 @@ elif menu == "Evaluasi Model":
 elif menu == "Prediksi":
     st.title("Prediksi Kanker Kulit dari Gambar")
 
-    # Add debugging prints for TensorFlow and Keras versions
-    st.write(f"TensorFlow version: {tf.__version__}")
-    st.write(f"Keras version: {keras.__version__}")
-
     # Allow both .keras and .h5 types for broader compatibility
     model_file = st.file_uploader("Unggah model (.keras atau .h5)", type=["keras", "h5"])
 
