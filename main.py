@@ -56,7 +56,7 @@ if menu == "Beranda":
     """)
 
     st.markdown("### Perancangan Sistem")
-    st.image("/asset/perancangan-sistem.png", caption="Diagram Perancangan Sistem", use_container_width=True)
+    st.image("asset/perancangan-sistem.png", caption="Diagram Perancangan Sistem", use_container_width=True)
 
     st.markdown("### Skenario Uji Coba")
 
@@ -125,7 +125,7 @@ elif menu == "Preprocessing":
         return img_array
 
     # Gambar contoh harus ada di direktori yang sama
-    example_img_path = "/asset/gambarpreprocessing.jpg"
+    example_img_path = "asset/gambarpreprocessing.jpg"
     if os.path.exists(example_img_path):
         col1, col2 = st.columns(2)
 
@@ -257,7 +257,7 @@ elif menu == "Preprocessing":
     Berikut adalah diagram alur proses ROS dalam penelitian ini:
     """)
 
-    st.image("/asset/alurros.png", caption="Alur Proses Random Oversampling", use_container_width=True)
+    st.image("asset/alurros.png", caption="Alur Proses Random Oversampling", use_container_width=True)
 
     st.markdown("""
     #### Langkah-langkah Proses ROS:
@@ -309,7 +309,7 @@ elif menu == "Preprocessing":
 
     """)
 
-    st.image("/asset/hasilros.png", caption="Perbandingan Data Train Sebelum dan Sesudah ROS", use_container_width=True)
+    st.image("asset/hasilros.png", caption="Perbandingan Data Train Sebelum dan Sesudah ROS", use_container_width=True)
 
     # ========== Sub Preprocessing - Data De-Transformasi ==============
 
@@ -465,7 +465,7 @@ elif menu == "Pelatihan Model":
     Model ini dibangun dengan menyusun sendiri layer-layer konvolusi dan blok *inverted residual* seperti arsitektur MobileNetV2 asli, namun tanpa memanfaatkan bobot pre-trained. Model dilatih dari awal menggunakan data yang telah seimbang dan ditransformasikan.
     """)
 
-    st.image("/asset/mobilenetv2manual.jpg", caption="Struktur Arsitektur CNN Manual", use_container_width=True)
+    st.image("asset/mobilenetv2manual.jpg", caption="Struktur Arsitektur CNN Manual", use_container_width=True)
 
     st.markdown("#### Tabel Arsitektur CNN Manual per Layer:")
     import pandas as pd
@@ -533,7 +533,7 @@ model.compile(optimizer=SGD(learning_rate=0.001, momentum=0.9),
     Model ini menggunakan arsitektur **MobileNetV2** yang telah dilatih sebelumnya pada dataset ImageNet. Teknik ini dikenal sebagai **Transfer Learning**. Semua layer dari model pre-trained dibuat **trainable** (fine-tuned) agar dapat menyesuaikan terhadap citra dermoskopi yang digunakan.
     """)
 
-    st.image("/asset/pretrainedmobilenetv2.jpg", caption="Struktur Transfer Learning MobileNetV2", use_container_width=True)
+    st.image("asset/pretrainedmobilenetv2.jpg", caption="Struktur Transfer Learning MobileNetV2", use_container_width=True)
 
     st.markdown("#### Kode Implementasi:")
     st.code("""
@@ -564,7 +564,7 @@ def create_model():
     """)
 
     st.markdown("#### Ilustrasi:")
-    st.image("/asset/kfold_ilustrasi.PNG", caption="Skema 5-Fold Cross Validation", use_container_width=True)
+    st.image("asset/kfold_ilustrasi.PNG", caption="Skema 5-Fold Cross Validation", use_container_width=True)
 
 
 # ===================== EVALUASI =====================
@@ -598,8 +598,8 @@ elif menu == "Evaluasi Model":
                 "Val Loss": ["6,29%"]
             },
             "train_imgs": [
-                "/asset/Skenario Pertama/Pelatihan/akurasi.png",
-                "/asset/Skenario Pertama/Pelatihan/loss.png"
+                "asset/Skenario Pertama/Pelatihan/akurasi.png",
+                "asset/Skenario Pertama/Pelatihan/loss.png"
             ],
             "test_akurasi": "79%",
             "test_metrics": {
@@ -607,8 +607,8 @@ elif menu == "Evaluasi Model":
                 "macro avg": [0.69, 0.69, 0.68],
                 "weighted avg": [0.82, 0.79, 0.80]
             },
-            "conf_matrix": "/asset/Skenario Pertama/Pengujian/confusionmatrix.png",
-            "roc": "/asset/Skenario Pertama/Pengujian/kurvaroc.png"
+            "conf_matrix": "asset/Skenario Pertama/Pengujian/confusionmatrix.png",
+            "roc": "asset/Skenario Pertama/Pengujian/kurvaroc.png"
         },
         {
             "judul": "Skenario Kedua (Tanpa ROS + Transfer Learning)",
@@ -622,8 +622,8 @@ elif menu == "Evaluasi Model":
                 "Val Loss": ["90,12%"]
             },
             "train_imgs": [
-                "/asset/Skenario Kedua/Pelatihan/akurasi.png",
-                "/asset/Skenario Kedua/Pelatihan/loss.png"
+                "asset/Skenario Kedua/Pelatihan/akurasi.png",
+                "asset/Skenario Kedua/Pelatihan/loss.png"
             ],
             "test_akurasi": "77%",
             "test_metrics": {
@@ -631,8 +631,8 @@ elif menu == "Evaluasi Model":
                 "macro avg": [0.65, 0.49, 0.54],
                 "weighted avg": [0.76, 0.77, 0.75]
             },
-            "conf_matrix": "/asset/Skenario Kedua/Pengujian/confusionmatrix.png",
-            "roc": "/asset/Skenario Kedua/Pengujian/kurvaroc.png"
+            "conf_matrix": "asset/Skenario Kedua/Pengujian/confusionmatrix.png",
+            "roc": "asset/Skenario Kedua/Pengujian/kurvaroc.png"
         },
         {
             "judul": "Skenario Ketiga (ROS + Tanpa Transfer Learning)",
@@ -646,8 +646,8 @@ elif menu == "Evaluasi Model":
                 "Val Loss": ["10,1%"]
             },
             "train_imgs": [
-                "/asset/Skenario Ketiga/Pelatihan/akurasi.png",
-                "/asset/Skenario Ketiga/Pelatihan/loss.png"
+                "asset/Skenario Ketiga/Pelatihan/akurasi.png",
+                "asset/Skenario Ketiga/Pelatihan/loss.png"
             ],
             "test_akurasi": "69%",
             "test_metrics": {
@@ -655,8 +655,8 @@ elif menu == "Evaluasi Model":
                 "macro avg": [0.46, 0.58, 0.51],
                 "weighted avg": [0.75, 0.69, 0.71]
             },
-            "conf_matrix": "/asset/Skenario Ketiga/Pengujian/confusionmatrix.png",
-            "roc": "/asset/Skenario Ketiga/Pengujian/kurvaroc.png"
+            "conf_matrix": "asset/Skenario Ketiga/Pengujian/confusionmatrix.png",
+            "roc": "asset/Skenario Ketiga/Pengujian/kurvaroc.png"
         },
         {
             "judul": "Skenario Keempat (Tanpa ROS + Tanpa Transfer Learning)",
@@ -670,8 +670,8 @@ elif menu == "Evaluasi Model":
                 "Val Loss": ["80,40%"]
             },
             "train_imgs": [
-                "/asset/Skenario Keempat/Pelatihan/akurasi.png",
-                "/asset/Skenario Keempat/Pelatihan/loss.png"
+                "asset/Skenario Keempat/Pelatihan/akurasi.png",
+                "asset/Skenario Keempat/Pelatihan/loss.png"
             ],
             "test_akurasi": "71%",
             "test_metrics": {
@@ -679,8 +679,8 @@ elif menu == "Evaluasi Model":
                 "macro avg": [0.39, 0.30, 0.32],
                 "weighted avg": [0.67, 0.71, 0.68]
             },
-            "conf_matrix": "/asset/Skenario Keempat/Pengujian/confusionmatrix.png",
-            "roc": "/asset/Skenario Keempat/Pengujian/kurvaroc.png"
+            "conf_matrix": "asset/Skenario Keempat/Pengujian/confusionmatrix.png",
+            "roc": "asset/Skenario Keempat/Pengujian/kurvaroc.png"
         }
     ]
 
