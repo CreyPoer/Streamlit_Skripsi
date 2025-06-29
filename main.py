@@ -716,23 +716,58 @@ elif menu == "Evaluasi Model":
 elif menu == "Prediksi":
     st.title("Prediksi Kanker Kulit dari Gambar")
 
-    model_file = st.file_uploader("Unggah model (.keras)", type=["keras"])
+    # Add debugging prints for TensorFlow and Keras versions
+    import keras
+    st.write(f"TensorFlow version: {tf.__version__}")
+    st.write(f"Keras version: {keras.__version__}")
+
+    # Allow both .keras and .h5 types for broader compatibility
+    model_file = st.file_uploader("Unggah model (.keras atau .h5)", type=["keras", "h5"])
+
+    # Use st.session_state to store the model after it's loaded to prevent re-loading on every rerun
+    if 'loaded_model' not in st.session_state:
+        st.session_state['loaded_model'] = None
+
     if model_file:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".keras") as tmp:
+        # Determine the correct suffix based on the uploaded file's name
+        file_extension = os.path.splitext(model_file.name)[1]
+        
+        # Save to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as tmp:
             tmp.write(model_file.read())
             tmp_path = tmp.name
 
-        model = load_model(tmp_path)
-        model.compile(optimizer=SGD(learning_rate=0.001, momentum=0.9),
-                      loss="sparse_categorical_crossentropy",
-                      metrics=["accuracy"])
-        st.success("Model berhasil dimuat.")
+        st.write(f"Temporary file path: {tmp_path}") # Debugging: show temp path
+        st.write(f"Does file exist: {os.path.exists(tmp_path)}") # Debugging: check existence
+        st.write(f"File size: {os.path.getsize(tmp_path)} bytes") # Debugging: show file size
+
+        try:
+            # Load the model
+            model = load_model(tmp_path)
+            model.compile(optimizer=SGD(learning_rate=0.001, momentum=0.9),
+                          loss="sparse_categorical_crossentropy",
+                          metrics=["accuracy"])
+            st.session_state['loaded_model'] = model  # Store model in session state
+            st.success("Model berhasil dimuat.")
+        except Exception as e:
+            st.error(f"Error loading model: {e}")
+            st.exception(e) # Display full traceback in Streamlit for detailed error info
+        finally:
+            # Ensure the temporary file is deleted
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+                st.write(f"Temporary file {tmp_path} deleted.")
+
+    # Only proceed if a model has been successfully loaded into session_state
+    if st.session_state['loaded_model'] is not None:
+        model = st.session_state['loaded_model'] # Retrieve the model from session state
 
         uploaded_image = st.file_uploader("Upload gambar kulit", type=["jpg", "jpeg", "png"])
         if uploaded_image:
             image = Image.open(uploaded_image).convert("RGB")
             st.image(image, caption="Gambar Asli")
 
+            # Preprocessing button
             if st.button("Preprocessing"):
                 resized = image.resize((64, 64))
                 arr = np.expand_dims(np.array(resized) / 255.0, axis=0)
@@ -740,17 +775,62 @@ elif menu == "Prediksi":
                 st.session_state["img_resized"] = resized
                 st.success("Preprocessing selesai.")
 
-            if "img_array" in st.session_state:
+            # Prediction logic (only if image is preprocessed)
+            if "img_array" in st.session_state and st.session_state["img_array"] is not None:
                 st.image(st.session_state["img_resized"], caption="Gambar Resize")
                 if st.button("Prediksi"):
-                    pred = model.predict(st.session_state["img_array"])
-                    idx = np.argmax(pred)
-                    label = label_encoder.inverse_transform([idx])[0]
-                    st.subheader("Hasil Prediksi")
-                    st.write(f"Label: **{label}**")
-                    st.write(f"Probabilitas: {np.max(pred) * 100:.2f}%")
+                    try:
+                        pred = model.predict(st.session_state["img_array"])
+                        idx = np.argmax(pred)
+                        label = label_encoder.inverse_transform([idx])[0]
+                        st.subheader("Hasil Prediksi")
+                        st.write(f"Label: **{label}**")
+                        st.write(f"Probabilitas: {np.max(pred) * 100:.2f}%")
+                    except Exception as e:
+                        st.error(f"Error during prediction: {e}")
+                        st.exception(e)
+            else:
+                st.info("Silakan klik 'Preprocessing' terlebih dahulu setelah mengunggah gambar.")
     else:
         st.info("Silakan unggah model terlebih dahulu.")
+# elif menu == "Prediksi":
+#     st.title("Prediksi Kanker Kulit dari Gambar")
+
+#     model_file = st.file_uploader("Unggah model (.keras)", type=["keras"])
+#     if model_file:
+#         with tempfile.NamedTemporaryFile(delete=False, suffix=".keras") as tmp:
+#             tmp.write(model_file.read())
+#             tmp_path = tmp.name
+
+#         model = load_model(tmp_path)
+#         model.compile(optimizer=SGD(learning_rate=0.001, momentum=0.9),
+#                       loss="sparse_categorical_crossentropy",
+#                       metrics=["accuracy"])
+#         st.success("Model berhasil dimuat.")
+
+#         uploaded_image = st.file_uploader("Upload gambar kulit", type=["jpg", "jpeg", "png"])
+#         if uploaded_image:
+#             image = Image.open(uploaded_image).convert("RGB")
+#             st.image(image, caption="Gambar Asli")
+
+#             if st.button("Preprocessing"):
+#                 resized = image.resize((64, 64))
+#                 arr = np.expand_dims(np.array(resized) / 255.0, axis=0)
+#                 st.session_state["img_array"] = arr
+#                 st.session_state["img_resized"] = resized
+#                 st.success("Preprocessing selesai.")
+
+#             if "img_array" in st.session_state:
+#                 st.image(st.session_state["img_resized"], caption="Gambar Resize")
+#                 if st.button("Prediksi"):
+#                     pred = model.predict(st.session_state["img_array"])
+#                     idx = np.argmax(pred)
+#                     label = label_encoder.inverse_transform([idx])[0]
+#                     st.subheader("Hasil Prediksi")
+#                     st.write(f"Label: **{label}**")
+#                     st.write(f"Probabilitas: {np.max(pred) * 100:.2f}%")
+#     else:
+#         st.info("Silakan unggah model terlebih dahulu.")
 
 # ===================== TENTANG =====================
 elif menu == "Tentang Penelitian":
