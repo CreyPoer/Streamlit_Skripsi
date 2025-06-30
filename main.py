@@ -22,7 +22,7 @@ label_encoder.classes_ = np.array(['akiec', 'bcc', 'bkl', 'df', 'mel', 'nv', 'va
 
 # ===================== BERANDA =====================
 if menu == "Beranda":
-    st.title("Implementasi Teknik Oversampling pada Klasifikasi Kanker Kulit")
+    st.title("Implementasi Random Oversampling pada Klasifikasi Kanker Kulit pada Citra Dermoskopi Menggunakan Metode MobileNetV2")
 
     st.markdown("""
     ### Latar Belakang
