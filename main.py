@@ -55,7 +55,6 @@ if menu == "Beranda":
     - Untuk menyeimbangkan data latih, digunakan teknik **Random Oversampling (ROS)**.
     - Model klasifikasi yang digunakan adalah **MobileNetV2**.
     - Pendekatan **Transfer Learning ImageNet** dengan **fine-tuning (membuka semua layer base model)** diuji.
-    - Parameter **`ImageDataGenerator`** disesuaikan untuk setiap skenario yang relevan.
     - **Hyperparameter** yang digunakan adalah: learning rate = 0.001, batch size = 32, epoch = 50, optimizer = SGD (momentum = 0.9), callback ModelCheckpoint dan EarlyStopping, serta loss sparse_categorical_crossentropy.
     - Evaluasi model menggunakan **5-fold cross-validation** pada data latih untuk menguji generalisasi model selama pelatihan.
     """)
@@ -599,10 +598,11 @@ elif menu == "Evaluasi Model":
         # Skenario 1: ROS + TL + IDG
         {
             "judul": "Skenario Pertama (ROS + Transfer Learning + ImageDataGenerator)",
+            "waktu_pelatihan": "8174.74 detik (~2 jam 16 menit)",
             "train_avg_table": {
-                "Metrik": ["Val Akurasi", "Val Loss", "Waktu Pelatihan (detik)"],
-                "Rata-rata 5-Fold": ["99,14%", "3,87%", "8174.74"],
-                "Fold Terbaik": ["99,37%", "2,95%", "N/A"]
+                "Metrik": ["Val Akurasi", "Val Loss"],
+                "Rata-rata 5-Fold": ["99,14%", "3,87%"],
+                "Fold Terbaik": ["99,37%", "2,95%"]
             },
             "train_imgs": [
                 "asset/Skenario Pertama/Pelatihan/akurasi.png",
@@ -629,10 +629,11 @@ elif menu == "Evaluasi Model":
         # Skenario 2: ROS + TL (Tanpa IDG)
         {
             "judul": "Skenario Kedua (ROS + Transfer Learning)",
+            "waktu_pelatihan": "3116.94 detik (~52 menit)",
             "train_avg_table": {
-                "Metrik": ["Val Akurasi", "Val Loss", "Waktu Pelatihan (detik)"],
-                "Rata-rata 5-Fold": ["99,32%", "3,73%", "3116.94"],
-                "Fold Terbaik": ["99,41%", "3,13%", "N/A"]
+                "Metrik": ["Val Akurasi", "Val Loss"],
+                "Rata-rata 5-Fold": ["99,32%", "3,73%"],
+                "Fold Terbaik": ["99,41%", "3,13%"]
             },
             "train_imgs": [
                 "asset/Skenario Kedua/Pelatihan/akurasi.png",
@@ -659,10 +660,11 @@ elif menu == "Evaluasi Model":
         # Skenario 3: Tanpa ROS + TL + IDG
         {
             "judul": "Skenario Ketiga (Tanpa ROS + Transfer Learning + ImageDataGenerator)",
+            "waktu_pelatihan": "1584.63 detik (~26 menit)",
             "train_avg_table": {
-                "Metrik": ["Val Akurasi", "Val Loss", "Waktu Pelatihan (detik)"],
-                "Rata-rata 5-Fold": ["78,63%", "74,32%", "1584.63"],
-                "Fold Terbaik": ["79,6%", "67,17%", "N/A"]
+                "Metrik": ["Val Akurasi", "Val Loss"],
+                "Rata-rata 5-Fold": ["78,63%", "74,32%"],
+                "Fold Terbaik": ["79,6%", "67,17%", ]
             },
             "train_imgs": [
                 "asset/Skenario Ketiga/Pelatihan/akurasi.png",
@@ -689,10 +691,11 @@ elif menu == "Evaluasi Model":
         # Skenario 4: Tanpa ROS + TL (Tanpa IDG)
         {
             "judul": "Skenario Keempat (Tanpa ROS + Transfer Learning)",
+            "waktu_pelatihan": "794.62 detik (~13 menit)",
             "train_avg_table": {
-                "Metrik": ["Val Akurasi", "Val Loss", "Waktu Pelatihan (detik)"],
-                "Rata-rata 5-Fold": ["76,59%", "124,2%", "794.62"],
-                "Fold Terbaik": ["78,28%", "116%", "N/A"]
+                "Metrik": ["Val Akurasi", "Val Loss"],
+                "Rata-rata 5-Fold": ["76,59%", "124,2%"],
+                "Fold Terbaik": ["78,28%", "116%"]
             },
             "train_imgs": [
                 "asset/Skenario Keempat/Pelatihan/akurasi.png",
@@ -719,14 +722,15 @@ elif menu == "Evaluasi Model":
         # Skenario 5: ROS + Tanpa TL + IDG
         {
             "judul": "Skenario Kelima (ROS + Tanpa Transfer Learning + ImageDataGenerator)",
+            "waktu_pelatihan": "8943.86 detik (~2 jam 29 menit)",
             "train_avg_table": {
-                "Metrik": ["Val Akurasi", "Val Loss", "Waktu Pelatihan (detik)"],
-                "Rata-rata 5-Fold": ["96,32%", "10,9%", "8943.86"],
-                "Fold Terbaik": ["96,87%", "9,56%", "N/A"]
+                "Metrik": ["Val Akurasi", "Val Loss"],
+                "Rata-rata 5-Fold": ["96,32%", "10,9%"],
+                "Fold Terbaik": ["96,87%", "9,56%"]
             },
             "train_imgs": [
-                "asset/Skenario Kelima/Pelatihan/akurasi.png", # Asumsi nama file asset serupa
-                "asset/Skenario Kelima/Pelatihan/loss.png"    # Asumsi nama file asset serupa
+                "asset/Skenario Kelima/Pelatihan/akurasi.png",
+                "asset/Skenario Kelima/Pelatihan/loss.png"
             ],
             "test_summary": {
                 "Acc": "72%",
@@ -743,16 +747,17 @@ elif menu == "Evaluasi Model":
                 "Kelas": ["Akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
                 "AUC (%)": ["93", "91", "85", "90", "82", "91", "100"]
             },
-            "conf_matrix": "asset/Skenario Kelima/Pengujian/confusionmatrix.png", # Asumsi nama file asset serupa
-            "roc": "asset/Skenario Kelima/Pengujian/kurvaroc.png" # Asumsi nama file asset serupa
+            "conf_matrix": "asset/Skenario Kelima/Pengujian/confusionmatrix.png",
+            "roc": "asset/Skenario Kelima/Pengujian/kurvaroc.png"
         },
         # Skenario 6: ROS + Tanpa TL (Tanpa IDG)
         {
             "judul": "Skenario Keenam (ROS + Tanpa Transfer Learning)",
+            "waktu_pelatihan": "5165.80 detik (~1 jam 26 menit)",
             "train_avg_table": {
-                "Metrik": ["Val Akurasi", "Val Loss", "Waktu Pelatihan (detik)"],
-                "Rata-rata 5-Fold": ["98,89%", "5,35%", "5165.80"],
-                "Fold Terbaik": ["99%", "4,98%", "N/A"]
+                "Metrik": ["Val Akurasi", "Val Loss"],
+                "Rata-rata 5-Fold": ["98,89%", "5,35%"],
+                "Fold Terbaik": ["99%", "4,98%"]
             },
             "train_imgs": [
                 "asset/Skenario Keenam/Pelatihan/akurasi.png",
@@ -779,10 +784,11 @@ elif menu == "Evaluasi Model":
         # Skenario 7: Tanpa ROS + Tanpa TL + IDG
         {
             "judul": "Skenario Ketujuh (Tanpa ROS + Tanpa Transfer Learning + ImageDataGenerator)",
+            "waktu_pelatihan": "1667.49 detik (~27 menit)",
             "train_avg_table": {
-                "Metrik": ["Val Akurasi", "Val Loss", "Waktu Pelatihan (detik)"],
-                "Rata-rata 5-Fold": ["72,77%", "78,62%", "1667.49"],
-                "Fold Terbaik": ["74,34%", "74,1%", "N/A"]
+                "Metrik": ["Val Akurasi", "Val Loss"],
+                "Rata-rata 5-Fold": ["72,77%", "78,62%"],
+                "Fold Terbaik": ["74,34%", "74,1%"]
             },
             "train_imgs": [
                 "asset/Skenario Ketujuh/Pelatihan/akurasi.png",
@@ -809,10 +815,11 @@ elif menu == "Evaluasi Model":
         # Skenario 8: Tanpa ROS + Tanpa TL (Tanpa IDG)
         {
             "judul": "Skenario Kedelapan (Tanpa ROS + Tanpa Transfer Learning)",
+            "waktu_pelatihan": "738.93 detik (~12 menit)",
             "train_avg_table": {
-                "Metrik": ["Val Akurasi", "Val Loss", "Waktu Pelatihan (detik)"],
-                "Rata-rata 5-Fold": ["71,12%", "85,87%", "738.93"],
-                "Fold Terbaik": ["71,87%", "87,84%", "N/A"]
+                "Metrik": ["Val Akurasi", "Val Loss"],
+                "Rata-rata 5-Fold": ["71,12%", "85,87%"],
+                "Fold Terbaik": ["71,87%", "87,84%"]
             },
             "train_imgs": [
                 "asset/Skenario Kedelapan/Pelatihan/akurasi.png",
@@ -842,27 +849,28 @@ elif menu == "Evaluasi Model":
         st.header(sk["judul"])
 
         # --- Pelatihan ---
-        st.subheader("Hasil Pelatihan") # Judul diubah, bukan lagi "Fold Terbaik"
-        st.dataframe(pd.DataFrame(sk["train_avg_table"]).set_index("Metrik")) # Menggunakan train_avg_table
+        st.subheader("Hasil Pelatihan")
+        st.markdown(f"**Waktu Total Pelatihan:** {sk['waktu_pelatihan']}") # Waktu pelatihan di luar tabel
+        st.dataframe(pd.DataFrame(sk["train_avg_table"]).set_index("Metrik")) 
 
         col_acc, col_loss = st.columns(2)
         with col_acc:
-            st.image(sk["train_imgs"][0], caption="Kurva Akurasi Pelatihan & Validasi") # Caption diubah
+            st.image(sk["train_imgs"][0], caption="Kurva Akurasi Pelatihan & Validasi")
         with col_loss:
-            st.image(sk["train_imgs"][1], caption="Kurva Loss Pelatihan & Validasi") # Caption diubah
+            st.image(sk["train_imgs"][1], caption="Kurva Loss Pelatihan & Validasi")
 
         # --- Pengujian ---
         st.subheader("Hasil Pengujian Model Terbaik")
         st.markdown(f"**Akurasi Pengujian:** {sk['test_summary']['Acc']}")
 
         st.markdown("#### Tabel Metrik Evaluasi (Ringkasan):")
-        st.dataframe(pd.DataFrame([sk["test_summary"]])) # Menampilkan ringkasan
+        st.dataframe(pd.DataFrame([sk["test_summary"]]))
 
         st.markdown("#### Tabel Metrik Evaluasi (Per Kelas):")
-        st.dataframe(pd.DataFrame(sk["test_class_metrics"]).set_index("Kelas")) # Menampilkan metrik per kelas
+        st.dataframe(pd.DataFrame(sk["test_class_metrics"]).set_index("Kelas"))
 
         st.markdown("#### Tabel AUC (Area Under the Curve) Per Kelas:")
-        st.dataframe(pd.DataFrame(sk["test_auc_table"]).set_index("Kelas")) # Menampilkan AUC per kelas
+        st.dataframe(pd.DataFrame(sk["test_auc_table"]).set_index("Kelas"))
 
         st.markdown("#### Visualisasi Confusion Matrix:")
         st.image(sk["conf_matrix"])
