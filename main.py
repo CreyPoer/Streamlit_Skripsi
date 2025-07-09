@@ -10,6 +10,7 @@ import tempfile
 import os
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.utils import img_to_array
+from tensorflow.keras.preprocessing.image import ImageDataGenerator # Import tambahan
 
 # Sidebar Navigation
 menu = st.sidebar.selectbox(
@@ -50,9 +51,13 @@ if menu == "Beranda":
     st.markdown("### Batasan Masalah")
     st.markdown("""
     - Dataset yang digunakan adalah **HAM10000** dari Kaggle ([link dataset](https://www.kaggle.com/datasets/kmader/skin-cancer-mnist-ham10000)), terdiri dari **10.015 citra dermoskopi** yang terbagi dalam **7 kelas kanker kulit**.
-    - Untuk menyeimbangkan dataset, digunakan teknik **Random Oversampling (ROS)**.
-    - **Hyperparameter** yang digunakan adalah: learning rate = 0.001, batch size = 32, epoch = 50, optimizer = SGD (momentum = 0.9).
-    - Evaluasi model menggunakan **5-fold cross-validation** pada data latih untuk menguji generalisasi model.
+    - Pembagian dataset dilakukan menjadi **80% data latih dan 20% data uji**.
+    - Untuk menyeimbangkan data latih, digunakan teknik **Random Oversampling (ROS)**.
+    - Model klasifikasi yang digunakan adalah **MobileNetV2**.
+    - Pendekatan **Transfer Learning ImageNet** dengan **fine-tuning (membuka semua layer base model)** diuji.
+    - Parameter **`ImageDataGenerator`** disesuaikan untuk setiap skenario yang relevan.
+    - **Hyperparameter** yang digunakan adalah: learning rate = 0.001, batch size = 32, epoch = 50, optimizer = SGD (momentum = 0.9), callback ModelCheckpoint dan EarlyStopping, serta loss sparse_categorical_crossentropy.
+    - Evaluasi model menggunakan **5-fold cross-validation** pada data latih untuk menguji generalisasi model selama pelatihan.
     """)
 
     st.markdown("### Perancangan Sistem")
@@ -61,9 +66,10 @@ if menu == "Beranda":
     st.markdown("### Skenario Uji Coba")
 
     skenario_df = pd.DataFrame({
-        "Skenario": [1, 2, 3, 4],
-        "Random oversampling": ["Pakai", "Tidak Pakai", "Pakai", "Tidak Pakai"],
-        "Transfer learning": ["ImageNet (fine-tuning)", "ImageNet (fine-tuning)", "Tanpa", "Tanpa"]
+        "No": [1, 2, 3, 4, 5, 6, 7, 8],
+        "Random Oversampling": ["Pakai", "Pakai", "Tanpa", "Tanpa", "Pakai", "Pakai", "Tanpa", "Tanpa"],
+        "Transfer learning": ["ImageNet (fine-tuning)", "ImageNet (fine-tuning)", "ImageNet (fine-tuning)", "ImageNet (fine-tuning)", "Tanpa", "Tanpa", "Tanpa", "Tanpa"],
+        "Augmentasi dengan Image-Data-Generator": ["Pakai", "Tanpa", "Pakai", "Tanpa", "Pakai", "Tanpa", "Pakai", "Tanpa"]
     })
     st.table(skenario_df)
 
@@ -138,7 +144,7 @@ elif menu == "Preprocessing":
             st.markdown("**Hasil Resize (64 x 64)**")
             st.image(resized_image.astype("uint8"), width=300)
     else:
-        st.warning("Gambar contoh tidak ditemukan. Pastikan file `contoh_gambar.jpg` berada di direktori yang sama.")
+        st.warning("Gambar contoh tidak ditemukan. Pastikan file `gambarpreprocessing.jpg` berada di direktori yang sama.")
 
     st.markdown("---")
     st.info("Lanjut ke proses transformasi data setelah resize...")
@@ -341,8 +347,8 @@ elif menu == "Preprocessing":
         reshaped_example = transformed.reshape(3, 64, 64).transpose(1, 2, 0)
         st.image(reshaped_example.astype("uint8"), caption="Hasil De-transformasi (64x64x3)", width=200)
         st.caption(f"Ukuran: {reshaped_example.shape}")
-    except:
-        st.warning("Gagal melakukan reshape. Pastikan data berbentuk 12288 (64x64x3).")
+    except NameError: # Handle case where resized_image or transformed might not be defined if example_img_path doesn't exist
+        st.warning("Gagal melakukan reshape. Pastikan data berbentuk 12288 (64x64x3) dan gambar contoh tersedia.")
 
 
     # ========== Sub Preprocessing - Augmentasi dan normalisasi menggunakan `ImageDataGenerator` ==============
@@ -363,25 +369,25 @@ elif menu == "Preprocessing":
     """)
 
     # Tabel konfigurasi augmentasi
-    aug_config = {
-        "Teknik Augmentasi": ["rotation_range", "width_shift_range", "height_shift_range", "zoom_range"],
-        "Nilai": ["10", "0.1", "0.1", "0.1"]
+    # Mengubah konfigurasi sesuai permintaan
+    aug_config_new = {
+        "Teknik Augmentasi": ["width_shift_range", "horizontal_flip", "vertical_flip"],
+        "Nilai": ["0.05", "True", "True"]
     }
-    st.table(pd.DataFrame(aug_config))
+    st.table(pd.DataFrame(aug_config_new))
 
     st.markdown("#### Kode Implementasi:")
     st.code("""
-    # Membuat fungsi ImageDataGenerator untuk data train
-    train_datagen = ImageDataGenerator(
-        rescale=1./255,
-        rotation_range=10,
-        width_shift_range=0.1,
-        height_shift_range=0.1,
-        zoom_range=0.1,
-    )
+# Membuta fungsi ImageDataGenerator untuk data train
+train_datagen = ImageDataGenerator(
+    rescale=1./255,              
+    width_shift_range=0.05,
+    horizontal_flip=True,    
+    vertical_flip=True, 
+)
 
-    # Membuat fungsi ImageDataGenerator untuk data validasi
-    val_datagen = ImageDataGenerator(rescale=1./255)
+# Membuta fungsi ImageDataGenerator untuk data validasi
+val_datagen = ImageDataGenerator(rescale=1./255) # Validasi hanya dinormalisasi, tidak di-augmentasi
         """)
 
     st.markdown("### Simulasi Augmentasi dan Normalisasi")
@@ -396,36 +402,44 @@ elif menu == "Preprocessing":
         img_array = img_to_array(original_img)
         img_array_expanded = np.expand_dims(img_array, axis=0)
 
-        from tensorflow.keras.preprocessing.image import ImageDataGenerator
+        # Mengubah parameter ImageDataGenerator sesuai permintaan untuk simulasi
+        train_datagen_sim = ImageDataGenerator(
+            rescale=1./255,
+            width_shift_range=0.05,
+            horizontal_flip=True,
+            vertical_flip=True,
+        )
 
         st.markdown("### Simulasi Dampak Masing-Masing Teknik Augmentasi")
 
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3 = st.columns(3) # Hanya 3 kolom karena rotasi dan zoom dihapus
 
+        # Untuk simulasi, kita harus memastikan ada variasi jika nilai flip diatur ke True
+        # Karena horizontal_flip dan vertical_flip adalah boolean, kita bisa coba generate beberapa kali
+        # atau menunjukkan efeknya jika diaktifkan. Untuk visualisasi, kita hanya bisa menunjukkan satu hasil acak.
+        
+        # Simulasi width_shift_range
         with col1:
-            st.markdown("**Rotasi 10°**")
-            rot_gen = ImageDataGenerator(rotation_range=10)
-            rot_img = next(rot_gen.flow(img_array_expanded, batch_size=1))[0].astype("float32") / 255.0
-            st.image(rot_img, caption="Rotasi")
-
-        with col2:
-            st.markdown("**Geser Horizontal 10%**")
-            shift_w_gen = ImageDataGenerator(width_shift_range=0.1)
-            shift_w_img = next(shift_w_gen.flow(img_array_expanded, batch_size=1))[0].astype("float32") / 255.0
+            st.markdown("**Geser Horizontal (0.05)**")
+            shift_w_img = next(train_datagen_sim.flow(img_array_expanded, batch_size=1, seed=42))[0] # Pakai seed untuk konsistensi
             st.image(shift_w_img, caption="Geser X")
 
+        # Simulasi horizontal_flip
+        with col2:
+            st.markdown("**Horizontal Flip**")
+            # Untuk flip, kita bisa membalik gambar secara manual untuk menunjukkan efeknya
+            flipped_h_img_array = np.flip(img_array_expanded, axis=2) # Flip horizontal
+            flipped_h_img = train_datagen_sim.rescale * flipped_h_img_array[0] # Normalisasi
+            st.image(flipped_h_img, caption="Flip Horizontal")
+
+        # Simulasi vertical_flip
         with col3:
-            st.markdown("**Geser Vertikal 10%**")
-            shift_h_gen = ImageDataGenerator(height_shift_range=0.1)
-            shift_h_img = next(shift_h_gen.flow(img_array_expanded, batch_size=1))[0].astype("float32") / 255.0
-            st.image(shift_h_img, caption="Geser Y")
-
-        with col4:
-            st.markdown("**Zoom 10%**")
-            zoom_gen = ImageDataGenerator(zoom_range=0.1)
-            zoom_img = next(zoom_gen.flow(img_array_expanded, batch_size=1))[0].astype("float32") / 255.0
-            st.image(zoom_img, caption="Zoom")
-
+            st.markdown("**Vertical Flip**")
+            # Untuk flip, kita bisa membalik gambar secara manual untuk menunjukkan efeknya
+            flipped_v_img_array = np.flip(img_array_expanded, axis=1) # Flip vertical
+            flipped_v_img = train_datagen_sim.rescale * flipped_v_img_array[0] # Normalisasi
+            st.image(flipped_v_img, caption="Flip Vertikal")
+            
         # NORMALISASI
         st.markdown("### Perbandingan Nilai Piksel Sebelum dan Sesudah Normalisasi")
         st.write("Berikut ini adalah nilai piksel pada channel R (merah) sebelum dan sesudah dilakukan normalisasi:")
@@ -434,14 +448,15 @@ elif menu == "Preprocessing":
         st.markdown("**Sebelum Normalisasi (Rentang 0–255):**")
         st.code(img_array[:, :, 0][:5, :5])  # channel R gambar asli (tanpa rescale)
 
-        # NORMALISASI
+        # NORMALISASI - ambil contoh dari gambar yang sudah diproses oleh generator
         st.markdown("**Sesudah Normalisasi (Rentang 0–1):**")
-        st.code(zoom_img[:, :, 0][:5, :5])  # channel R gambar augmentasi (sudah dinormalisasi)
-
+        # Generate satu gambar lagi dengan generator_sim untuk mendapatkan normalisasi
+        normalized_img_example = next(train_datagen_sim.flow(img_array_expanded, batch_size=1, seed=42))[0]
+        st.code(normalized_img_example[:, :, 0][:5, :5])  # channel R gambar augmentasi (sudah dinormalisasi)
 
 
     else:
-        st.warning("Gambar contoh tidak ditemukan. Pastikan `contoh_gambar.jpg` tersedia.")
+        st.warning("Gambar contoh tidak ditemukan. Pastikan `gambarpreprocessing.jpg` tersedia.")
 
 
 
@@ -452,20 +467,20 @@ elif menu == "Pelatihan Model":
     st.markdown("""
     Pada tahap ini dilakukan pelatihan model klasifikasi citra kanker kulit dengan dua pendekatan berbeda:
 
-    1. **Model CNN Manual (Custom MobileNetV2)**: Dirancang dari awal dengan menyusun sendiri arsitektur seperti MobileNetV2.
-    2. **Model Transfer Learning**: Menggunakan model MobileNetV2 yang telah dilatih pada dataset ImageNet, lalu dilakukan fine-tuning agar dapat mengenali citra kanker kulit.
+    1. **Model CNN Manual (MobileNetV2 from Scratch)**: Model MobileNetV2 dilatih dari awal tanpa menggunakan bobot pre-trained ImageNet.
+    2. **Model Transfer Learning (MobileNetV2 Pre-trained)**: Menggunakan model MobileNetV2 yang telah dilatih pada dataset ImageNet, lalu dilakukan fine-tuning (semua layer base model dibuat *trainable*).
 
     Untuk menjamin generalisasi model, proses pelatihan dilakukan menggunakan **5-Fold Cross Validation**.
     """)
 
     # --- CNN Manual ---
-    st.subheader("1. Model CNN Manual (Custom MobileNetV2)")
+    st.subheader("1. Model CNN Manual (MobileNetV2 from Scratch)")
 
     st.markdown("""
     Model ini dibangun dengan menyusun sendiri layer-layer konvolusi dan blok *inverted residual* seperti arsitektur MobileNetV2 asli, namun tanpa memanfaatkan bobot pre-trained. Model dilatih dari awal menggunakan data yang telah seimbang dan ditransformasikan.
     """)
 
-    st.image("asset/mobilenetv2manual.jpg", caption="Struktur Arsitektur CNN Manual")
+    st.image("asset/mobilenetv2manual.jpg", caption="Struktur Arsitektur CNN Manual (MobileNetV2 from Scratch)")
 
     st.markdown("#### Tabel Arsitektur CNN Manual per Layer:")
     import pandas as pd
@@ -520,7 +535,7 @@ elif menu == "Pelatihan Model":
     st.code("""
 # Fungsi dan implementasi blok residual sudah dijelaskan dalam model
 # Berikut hanya ringkasan fungsi utama
-model = create_model()
+model = create_model() # Diasumsikan ada fungsi create_model() untuk MobileNetV2 from scratch
 model.compile(optimizer=SGD(learning_rate=0.001, momentum=0.9),
               loss="sparse_categorical_crossentropy",
               metrics=["accuracy"])
@@ -537,12 +552,16 @@ model.compile(optimizer=SGD(learning_rate=0.001, momentum=0.9),
 
     st.markdown("#### Kode Implementasi:")
     st.code("""
-def create_model():
+from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.layers import GlobalAveragePooling2D, Dense
+from tensorflow.keras.models import Model
+
+def create_tl_model():
     base_model = MobileNetV2(weights="imagenet", include_top=False, input_shape=(64, 64, 3))
-    base_model.trainable = True
+    base_model.trainable = True # Fine-tuning: semua layer trainable
 
     x = GlobalAveragePooling2D()(base_model.output)
-    output = Dense(7, activation="softmax")(x)
+    output = Dense(7, activation="softmax")(x) # 7 kelas kanker kulit
 
     model = Model(inputs=base_model.input, outputs=output)
 
@@ -558,9 +577,9 @@ def create_model():
     st.subheader("3. Evaluasi dengan 5-Fold Cross Validation")
 
     st.markdown("""
-    Untuk memastikan model tidak hanya belajar dari subset data tertentu, proses pelatihan dilakukan menggunakan **5-Fold Cross Validation**. Data latih dibagi menjadi 5 bagian, model dilatih 5 kali dengan rotasi bagian data validasi, lalu hasilnya dirata-rata untuk menilai kinerja secara umum.
+    Untuk menjamin generalisasi model dan mengurangi risiko *overfitting*, proses pelatihan dilakukan menggunakan **5-Fold Cross Validation**. Data latih dibagi menjadi 5 bagian, model dilatih 5 kali dengan rotasi bagian data validasi, lalu hasilnya dirata-rata untuk menilai kinerja secara umum.
 
-    Teknik ini meningkatkan keandalan model dan menghindari overfitting.
+    Teknik ini meningkatkan keandalan evaluasi model.
     """)
 
     st.markdown("#### Ilustrasi:")
@@ -572,137 +591,278 @@ elif menu == "Evaluasi Model":
     st.title("Evaluasi Model Berdasarkan Skenario Uji Coba")
 
     st.markdown("""
-    Evaluasi dilakukan terhadap empat skenario pengujian untuk menilai performa model klasifikasi. Setiap skenario mencerminkan kombinasi penggunaan **Random Oversampling (ROS)** dan **Transfer Learning**:
-
-    1. ROS + Transfer Learning
-    2. Tanpa ROS + Transfer Learning
-    3. ROS + Tanpa Transfer Learning
-    4. Tanpa ROS + Tanpa Transfer Learning
-
-    Setiap skenario mencakup dua bagian evaluasi:
-    - **Hasil Pelatihan** menggunakan 5-Fold Cross Validation
-    - **Hasil Pengujian** model terbaik pada data uji
+    Evaluasi dilakukan terhadap **delapan skenario** pengujian untuk menilai performa model klasifikasi. Setiap skenario mencerminkan kombinasi penggunaan **Random Oversampling (ROS)**, **Transfer Learning**, dan **`ImageDataGenerator`**:
     """)
 
-    # Data per skenario
-    skenario_list = [
+    # Data per skenario (8 skenario)
+    skenario_data = [
+        # Skenario 1: ROS + TL + IDG
         {
-            "judul": "Skenario Pertama (ROS + Transfer Learning)",
-            "train_table": {
-                "Fold": [5],
-                "Best Epoch": [47],
-                "Stop Epoch": [50],
-                "Akurasi": ["99,52%"],
-                "Loss": ["1,44%"],
-                "Val Akurasi": ["98,60%"],
-                "Val Loss": ["6,29%"]
+            "judul": "Skenario Pertama (ROS + Transfer Learning + ImageDataGenerator)",
+            "train_avg_table": {
+                "Metrik": ["Val Akurasi", "Val Loss", "Waktu Pelatihan (detik)"],
+                "Rata-rata 5-Fold": ["99,14%", "3,87%", "8174.74"],
+                "Fold Terbaik": ["99,37%", "2,95%", "N/A"]
             },
             "train_imgs": [
                 "asset/Skenario Pertama/Pelatihan/akurasi.png",
                 "asset/Skenario Pertama/Pelatihan/loss.png"
             ],
-            "test_akurasi": "79%",
-            "test_metrics": {
-                "": ["precision", "recall", "f1-score"],
-                "macro avg": [0.69, 0.69, 0.68],
-                "weighted avg": [0.82, 0.79, 0.80]
+            "test_summary": {
+                "Acc": "81%",
+                "Macro Avg P": "69%", "Macro Avg R": "68%", "Macro Avg F1": "69%",
+                "Weighted Avg P": "82%", "Weighted Avg R": "81%", "Weighted Avg F1": "82%"
+            },
+            "test_class_metrics": {
+                "Kelas": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
+                "Presisi": ["59%", "73%", "60%", "52%", "57%", "92%", "92%"],
+                "Recall": ["46%", "72%", "68%", "52%", "65%", "89%", "86%"],
+                "F1-Score": ["52%", "72%", "64%", "52%", "60%", "91%", "89%"]
+            },
+            "test_auc_table": {
+                "Kelas": ["Akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
+                "AUC (%)": ["95", "98", "92", "98", "91", "94", "100"]
             },
             "conf_matrix": "asset/Skenario Pertama/Pengujian/confusionmatrix.png",
             "roc": "asset/Skenario Pertama/Pengujian/kurvaroc.png"
         },
+        # Skenario 2: ROS + TL (Tanpa IDG)
         {
-            "judul": "Skenario Kedua (Tanpa ROS + Transfer Learning)",
-            "train_table": {
-                "Fold": [1],
-                "Best Epoch": [29],
-                "Stop Epoch": [39],
-                "Akurasi": ["91,52%"],
-                "Loss": ["22,8%"],
-                "Val Akurasi": ["78,39%"],
-                "Val Loss": ["90,12%"]
+            "judul": "Skenario Kedua (ROS + Transfer Learning)",
+            "train_avg_table": {
+                "Metrik": ["Val Akurasi", "Val Loss", "Waktu Pelatihan (detik)"],
+                "Rata-rata 5-Fold": ["99,32%", "3,73%", "3116.94"],
+                "Fold Terbaik": ["99,41%", "3,13%", "N/A"]
             },
             "train_imgs": [
                 "asset/Skenario Kedua/Pelatihan/akurasi.png",
                 "asset/Skenario Kedua/Pelatihan/loss.png"
             ],
-            "test_akurasi": "77%",
-            "test_metrics": {
-                "": ["precision", "recall", "f1-score"],
-                "macro avg": [0.65, 0.49, 0.54],
-                "weighted avg": [0.76, 0.77, 0.75]
+            "test_summary": {
+                "Acc": "80%",
+                "Macro Avg P": "67%", "Macro Avg R": "64%", "Macro Avg F1": "64%",
+                "Weighted Avg P": "79%", "Weighted Avg R": "80%", "Weighted Avg F1": "79%"
+            },
+            "test_class_metrics": {
+                "Kelas": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
+                "Presisi": ["53%", "59%", "66%", "75%", "53%", "89%", "74%"],
+                "Recall": ["58%", "67%", "60%", "39%", "46%", "91%", "82%"],
+                "F1-Score": ["55%", "63%", "63%", "51%", "49%", "90%", "78%"]
+            },
+            "test_auc_table": {
+                "Kelas": ["Akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
+                "AUC (%)": ["96", "96", "89", "93", "88", "92", "100"]
             },
             "conf_matrix": "asset/Skenario Kedua/Pengujian/confusionmatrix.png",
             "roc": "asset/Skenario Kedua/Pengujian/kurvaroc.png"
         },
+        # Skenario 3: Tanpa ROS + TL + IDG
         {
-            "judul": "Skenario Ketiga (ROS + Tanpa Transfer Learning)",
-            "train_table": {
-                "Fold": [3],
-                "Best Epoch": [50],
-                "Stop Epoch": [50],
-                "Akurasi": ["94,59%"],
-                "Loss": ["15,3%"],
-                "Val Akurasi": ["96,82%"],
-                "Val Loss": ["10,1%"]
+            "judul": "Skenario Ketiga (Tanpa ROS + Transfer Learning + ImageDataGenerator)",
+            "train_avg_table": {
+                "Metrik": ["Val Akurasi", "Val Loss", "Waktu Pelatihan (detik)"],
+                "Rata-rata 5-Fold": ["78,63%", "74,32%", "1584.63"],
+                "Fold Terbaik": ["79,6%", "67,17%", "N/A"]
             },
             "train_imgs": [
                 "asset/Skenario Ketiga/Pelatihan/akurasi.png",
                 "asset/Skenario Ketiga/Pelatihan/loss.png"
             ],
-            "test_akurasi": "69%",
-            "test_metrics": {
-                "": ["precision", "recall", "f1-score"],
-                "macro avg": [0.46, 0.58, 0.51],
-                "weighted avg": [0.75, 0.69, 0.71]
+            "test_summary": {
+                "Acc": "79%",
+                "Macro Avg P": "65%", "Macro Avg R": "55%", "Macro Avg F1": "58%",
+                "Weighted Avg P": "78%", "Weighted Avg R": "79%", "Weighted Avg F1": "78%"
+            },
+            "test_class_metrics": {
+                "Kelas": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
+                "Presisi": ["32%", "63%", "66%", "50%", "56%", "87%", "100%"],
+                "Recall": ["45%", "52%", "48%", "26%", "48%", "94%", "71%"],
+                "F1-Score": ["37%", "57%", "56%", "34%", "52%", "90%", "83%"]
+            },
+            "test_auc_table": {
+                "Kelas": ["Akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
+                "AUC (%)": ["92", "97", "91", "96", "90", "92", "99"]
             },
             "conf_matrix": "asset/Skenario Ketiga/Pengujian/confusionmatrix.png",
             "roc": "asset/Skenario Ketiga/Pengujian/kurvaroc.png"
         },
+        # Skenario 4: Tanpa ROS + TL (Tanpa IDG)
         {
-            "judul": "Skenario Keempat (Tanpa ROS + Tanpa Transfer Learning)",
-            "train_table": {
-                "Fold": [2],
-                "Best Epoch": [29],
-                "Stop Epoch": [39],
-                "Akurasi": ["72,93%"],
-                "Loss": ["73,6%"],
-                "Val Akurasi": ["72,93%"],
-                "Val Loss": ["80,40%"]
+            "judul": "Skenario Keempat (Tanpa ROS + Transfer Learning)",
+            "train_avg_table": {
+                "Metrik": ["Val Akurasi", "Val Loss", "Waktu Pelatihan (detik)"],
+                "Rata-rata 5-Fold": ["76,59%", "124,2%", "794.62"],
+                "Fold Terbaik": ["78,28%", "116%", "N/A"]
             },
             "train_imgs": [
                 "asset/Skenario Keempat/Pelatihan/akurasi.png",
                 "asset/Skenario Keempat/Pelatihan/loss.png"
             ],
-            "test_akurasi": "71%",
-            "test_metrics": {
-                "": ["precision", "recall", "f1-score"],
-                "macro avg": [0.39, 0.30, 0.32],
-                "weighted avg": [0.67, 0.71, 0.68]
+            "test_summary": {
+                "Acc": "77%",
+                "Macro Avg P": "60%", "Macro Avg R": "51%", "Macro Avg F1": "54%",
+                "Weighted Avg P": "75%", "Weighted Avg R": "77%", "Weighted Avg F1": "75%"
+            },
+            "test_class_metrics": {
+                "Kelas": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
+                "Presisi": ["41%", "68%", "53%", "23%", "60%", "85%", "90%"],
+                "Recall": ["49%", "49%", "51%", "22%", "29%", "94%", "64%"],
+                "F1-Score": ["44%", "57%", "52%", "22%", "39%", "89%", "75%"]
+            },
+            "test_auc_table": {
+                "Kelas": ["Akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
+                "AUC (%)": ["94", "94", "85", "89", "82", "89", "99"]
             },
             "conf_matrix": "asset/Skenario Keempat/Pengujian/confusionmatrix.png",
             "roc": "asset/Skenario Keempat/Pengujian/kurvaroc.png"
+        },
+        # Skenario 5: ROS + Tanpa TL + IDG
+        {
+            "judul": "Skenario Kelima (ROS + Tanpa Transfer Learning + ImageDataGenerator)",
+            "train_avg_table": {
+                "Metrik": ["Val Akurasi", "Val Loss", "Waktu Pelatihan (detik)"],
+                "Rata-rata 5-Fold": ["96,32%", "10,9%", "8943.86"],
+                "Fold Terbaik": ["96,87%", "9,56%", "N/A"]
+            },
+            "train_imgs": [
+                "asset/Skenario Kelima/Pelatihan/akurasi.png", # Asumsi nama file asset serupa
+                "asset/Skenario Kelima/Pelatihan/loss.png"    # Asumsi nama file asset serupa
+            ],
+            "test_summary": {
+                "Acc": "72%",
+                "Macro Avg P": "51%", "Macro Avg R": "56%", "Macro Avg F1": "53%",
+                "Weighted Avg P": "75%", "Weighted Avg R": "72%", "Weighted Avg F1": "73%"
+            },
+            "test_class_metrics": {
+                "Kelas": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
+                "Presisi": ["33%", "65%", "49%", "21%", "37%", "90%", "66%"],
+                "Recall": ["46%", "50%", "57%", "26%", "49%", "81%", "82%"],
+                "F1-Score": ["38%", "56%", "53%", "23%", "42%", "85%", "73%"]
+            },
+            "test_auc_table": {
+                "Kelas": ["Akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
+                "AUC (%)": ["93", "91", "85", "90", "82", "91", "100"]
+            },
+            "conf_matrix": "asset/Skenario Kelima/Pengujian/confusionmatrix.png", # Asumsi nama file asset serupa
+            "roc": "asset/Skenario Kelima/Pengujian/kurvaroc.png" # Asumsi nama file asset serupa
+        },
+        # Skenario 6: ROS + Tanpa TL (Tanpa IDG)
+        {
+            "judul": "Skenario Keenam (ROS + Tanpa Transfer Learning)",
+            "train_avg_table": {
+                "Metrik": ["Val Akurasi", "Val Loss", "Waktu Pelatihan (detik)"],
+                "Rata-rata 5-Fold": ["98,89%", "5,35%", "5165.80"],
+                "Fold Terbaik": ["99%", "4,98%", "N/A"]
+            },
+            "train_imgs": [
+                "asset/Skenario Keenam/Pelatihan/akurasi.png",
+                "asset/Skenario Keenam/Pelatihan/loss.png"
+            ],
+            "test_summary": {
+                "Acc": "73%",
+                "Macro Avg P": "54%", "Macro Avg R": "49%", "Macro Avg F1": "51%",
+                "Weighted Avg P": "73%", "Weighted Avg R": "73%", "Weighted Avg F1": "73%"
+            },
+            "test_class_metrics": {
+                "Kelas": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
+                "Presisi": ["44%", "48%", "43%", "33%", "46%", "86%", "78%"],
+                "Recall": ["34%", "61%", "47%", "22%", "47%", "85%", "50%"],
+                "F1-Score": ["38%", "54%", "45%", "26%", "47%", "86%", "61%"]
+            },
+            "test_auc_table": {
+                "Kelas": ["Akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
+                "AUC (%)": ["85", "87", "81", "87", "82", "86", "96"]
+            },
+            "conf_matrix": "asset/Skenario Keenam/Pengujian/confusionmatrix.png",
+            "roc": "asset/Skenario Keenam/Pengujian/kurvaroc.png"
+        },
+        # Skenario 7: Tanpa ROS + Tanpa TL + IDG
+        {
+            "judul": "Skenario Ketujuh (Tanpa ROS + Tanpa Transfer Learning + ImageDataGenerator)",
+            "train_avg_table": {
+                "Metrik": ["Val Akurasi", "Val Loss", "Waktu Pelatihan (detik)"],
+                "Rata-rata 5-Fold": ["72,77%", "78,62%", "1667.49"],
+                "Fold Terbaik": ["74,34%", "74,1%", "N/A"]
+            },
+            "train_imgs": [
+                "asset/Skenario Ketujuh/Pelatihan/akurasi.png",
+                "asset/Skenario Ketujuh/Pelatihan/loss.png"
+            ],
+            "test_summary": {
+                "Acc": "76%",
+                "Macro Avg P": "50%", "Macro Avg R": "44%", "Macro Avg F1": "45%",
+                "Weighted Avg P": "72%", "Weighted Avg R": "76%", "Weighted Avg F1": "73%"
+            },
+            "test_class_metrics": {
+                "Kelas": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
+                "Presisi": ["21%", "55%", "49%", "0%", "60%", "83%", "83%"],
+                "Recall": ["5%", "51%", "52%", "0%", "31%", "94%", "71%"],
+                "F1-Score": ["8%", "53%", "50%", "0%", "41%", "88%", "77%"]
+            },
+            "test_auc_table": {
+                "Kelas": ["Akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
+                "AUC (%)": ["91", "94", "87", "83", "85", "90", "97"]
+            },
+            "conf_matrix": "asset/Skenario Ketujuh/Pengujian/confusionmatrix.png",
+            "roc": "asset/Skenario Ketujuh/Pengujian/kurvaroc.png"
+        },
+        # Skenario 8: Tanpa ROS + Tanpa TL (Tanpa IDG)
+        {
+            "judul": "Skenario Kedelapan (Tanpa ROS + Tanpa Transfer Learning)",
+            "train_avg_table": {
+                "Metrik": ["Val Akurasi", "Val Loss", "Waktu Pelatihan (detik)"],
+                "Rata-rata 5-Fold": ["71,12%", "85,87%", "738.93"],
+                "Fold Terbaik": ["71,87%", "87,84%", "N/A"]
+            },
+            "train_imgs": [
+                "asset/Skenario Kedelapan/Pelatihan/akurasi.png",
+                "asset/Skenario Kedelapan/Pelatihan/loss.png"
+            ],
+            "test_summary": {
+                "Acc": "71%",
+                "Macro Avg P": "37%", "Macro Avg R": "25%", "Macro Avg F1": "26%",
+                "Weighted Avg P": "66%", "Weighted Avg R": "71%", "Weighted Avg F1": "65%"
+            },
+            "test_class_metrics": {
+                "Kelas": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
+                "Presisi": ["29%", "42%", "51%", "0%", "65%", "75%", "0%"],
+                "Recall": ["8%", "32%", "32%", "0%", "6%", "98%", "0%"],
+                "F1-Score": ["12%", "36%", "39%", "0%", "11%", "85%", "0%"]
+            },
+            "test_auc_table": {
+                "Kelas": ["Akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
+                "AUC (%)": ["88", "91", "83", "83", "82", "87", "88"]
+            },
+            "conf_matrix": "asset/Skenario Kedelapan/Pengujian/confusionmatrix.png",
+            "roc": "asset/Skenario Kedelapan/Pengujian/kurvaroc.png"
         }
     ]
 
-    for sk in skenario_list:
+    for sk in skenario_data: # Menggunakan skenario_data untuk 8 skenario
         st.header(sk["judul"])
 
         # --- Pelatihan ---
-        st.subheader("Hasil Pelatihan (Fold Terbaik)")
-        st.dataframe(pd.DataFrame(sk["train_table"]))
+        st.subheader("Hasil Pelatihan") # Judul diubah, bukan lagi "Fold Terbaik"
+        st.dataframe(pd.DataFrame(sk["train_avg_table"]).set_index("Metrik")) # Menggunakan train_avg_table
 
         col_acc, col_loss = st.columns(2)
         with col_acc:
-            st.image(sk["train_imgs"][0], caption="Akurasi - Fold Terbaik")
+            st.image(sk["train_imgs"][0], caption="Kurva Akurasi Pelatihan & Validasi") # Caption diubah
         with col_loss:
-            st.image(sk["train_imgs"][1], caption="Loss - Fold Terbaik")
+            st.image(sk["train_imgs"][1], caption="Kurva Loss Pelatihan & Validasi") # Caption diubah
 
         # --- Pengujian ---
         st.subheader("Hasil Pengujian Model Terbaik")
-        st.markdown(f"**Akurasi Pengujian:** {sk['test_akurasi']}")
+        st.markdown(f"**Akurasi Pengujian:** {sk['test_summary']['Acc']}")
 
-        st.markdown("#### Tabel Metrik Evaluasi:")
-        st.dataframe(pd.DataFrame(sk["test_metrics"]).set_index(""))
+        st.markdown("#### Tabel Metrik Evaluasi (Ringkasan):")
+        st.dataframe(pd.DataFrame([sk["test_summary"]])) # Menampilkan ringkasan
+
+        st.markdown("#### Tabel Metrik Evaluasi (Per Kelas):")
+        st.dataframe(pd.DataFrame(sk["test_class_metrics"]).set_index("Kelas")) # Menampilkan metrik per kelas
+
+        st.markdown("#### Tabel AUC (Area Under the Curve) Per Kelas:")
+        st.dataframe(pd.DataFrame(sk["test_auc_table"]).set_index("Kelas")) # Menampilkan AUC per kelas
 
         st.markdown("#### Visualisasi Confusion Matrix:")
         st.image(sk["conf_matrix"])
