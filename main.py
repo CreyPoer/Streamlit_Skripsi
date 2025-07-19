@@ -15,7 +15,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator # Import tam
 # Sidebar Navigation
 menu = st.sidebar.selectbox(
     "Pilih Halaman",
-    ("Beranda", "Preprocessing", "Pelatihan Model", "Evaluasi Model", "Prediksi", "Tentang Penelitian")
+    ("Beranda", "Preprocessing", "Dataset HAM10000", "Pelatihan Model", "Evaluasi Model", "Prediksi", "Tentang Penelitian")
 )
 
 label_encoder = LabelEncoder()
@@ -29,7 +29,7 @@ if menu == "Beranda":
     ### Latar Belakang
     Kanker kulit merupakan salah satu jenis kanker yang umum terjadi di Asia, yang disebabkan oleh paparan sinar ultraviolet berlebih dari matahari sehingga mendorong pertumbuhan sel secara abnormal. Deteksi dini yang akurat sangat penting untuk mencegah penyebaran kanker lebih lanjut. Namun, proses diagnosis yang dilakukan oleh tenaga medis sering kali bersifat manual, sehingga berisiko menimbulkan kesalahan deteksi.
 
-    Model klasifikasi berbasis komputer yang andal sangat dibutuhkan untuk membantu mengidentifikasi berbagai jenis kanker kulit secara otomatis. Salah satu metode yang terbukti efektif adalah **Convolutional Neural Network (CNN)** karena mampu mengenali pola-pola sel kanker kulit melalui citra dermoskopi, yang mengandung informasi penting seperti warna, tekstur, dan ukuran.
+    Model klasifikasi berbasis komputer yang handal sangat dibutuhkan untuk membantu mengidentifikasi berbagai jenis kanker kulit secara otomatis. Salah satu metode yang terbukti efektif adalah **Convolutional Neural Network (CNN)** karena mampu mengenali pola-pola sel kanker kulit melalui citra dermoskopi, yang mengandung informasi penting seperti warna, tekstur, dan ukuran.
 
     Meskipun demikian, penerapan CNN pada dataset dermoskopi seperti **HAM10000** menghadapi tantangan berupa **ketidakseimbangan data**, yang menyebabkan model cenderung mengenali hanya kelas mayoritas. Untuk mengatasi masalah tersebut, teknik **Random Oversampling (ROS)** dapat digunakan sebagai solusi penyeimbang data.
 
@@ -457,7 +457,46 @@ val_datagen = ImageDataGenerator(rescale=1./255) # Validasi hanya dinormalisasi,
     else:
         st.warning("Gambar contoh tidak ditemukan. Pastikan `gambarpreprocessing.jpg` tersedia.")
 
+# ===================== DATASET HAM10000 =====================
+elif menu == "Dataset HAM10000":
+    st.title("Dataset HAM10000: Skin Cancer MNIST")
 
+    st.markdown("""
+    Dataset yang digunakan dalam penelitian ini adalah **Skin Cancer MNIST: HAM10000**, yang dapat diakses melalui Kaggle: [https://www.kaggle.com/datasets/kmader/skin-cancer-mnist-ham10000](https://www.kaggle.com/datasets/kmader/skin-cancer-mnist-ham10000).
+
+    Dataset ini merupakan kumpulan citra dermoskopi yang sangat besar, berisi total **10.015 gambar** yang dikelompokkan ke dalam **tujuh jenis kanker kulit** yang berbeda. Citra-citra ini dikumpulkan selama 20 tahun dari dua lokasi berbeda: Departemen Dermatologi di Universitas Kedokteran Wina, Austria, dan praktik kanker kulit Cliff Rosendahl di Queensland, Australia. Setiap gambar dermoskopi dilengkapi dengan metadata yang diekstrak dari Powerpoint dan basis data Excel.
+
+    **HAM10000** menyediakan variasi bentuk, tekstur, dan warna lesi kanker kulit dari berbagai penderita, menjadikannya dataset yang komprehensif untuk tugas klasifikasi citra kanker kulit.
+    """)
+
+    st.subheader("Sampel Gambar per Kelas")
+    st.image("asset/sampelperkelas.png", caption="Contoh Gambar untuk Setiap Kelas Kanker Kulit dalam Dataset HAM10000")
+
+    st.subheader("Distribusi Data per Kelas")
+    data_dist_df = pd.DataFrame({
+        "No": [1, 2, 3, 4, 5, 6, 7],
+        "Label": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
+        "Nama Kelas": [
+            "Actinic Keratoses and Intraepithelial Carcinoma / Bowen's Disease",
+            "Basal Cell Carcinoma",
+            "Benign Keratosis-like Lesions",
+            "Dermatofibroma",
+            "Melanoma",
+            "Melanocytic Nevi",
+            "Vascular Lesions"
+        ],
+        "Deskripsi": [
+            "Prakanker kulit atau tahap awal kanker kulit akibat paparan sinar UV.",
+            "Kanker kulit jenis non-melanoma yang paling umum.",
+            "Jenis lesi kulit jinak yang sering diduga termasuk kedalam jenis kanker kulit karena serupa.",
+            "Lesi kulit jinak yang sering ditemukan di kaki atau tangan.",
+            "Jenis kanker yang sangat mudah menyebar dan sangat berbahaya.",
+            "Lesi kulit jinak yang sering disebut Tahi Lalat.",
+            "Termasuk kedalam lesi vaskular seperti angioma atau hemangioma."
+        ],
+        "Jumlah Data": [327, 514, 1099, 115, 1113, 6705, 142]
+    })
+    st.table(data_dist_df.set_index("No"))
 
 # ===================== PELATIHAN =====================
 elif menu == "Pelatihan Model":
