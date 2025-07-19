@@ -470,16 +470,37 @@ elif menu == "Dataset HAM10000":
     """)
 
     st.subheader("Sampel Gambar per Kelas")
-    st.image("asset/sampelperkelas.png", caption="Contoh Gambar untuk Setiap Kelas Kanker Kulit dalam Dataset HAM10000", width=1000)
-    st.image("asset/sampelperkelas.png", caption="Contoh Gambar untuk Setiap Kelas Kanker Kulit dalam Dataset HAM10000", width=1500)
-    st.image("asset/sampelperkelas.png", caption="Contoh Gambar untuk Setiap Kelas Kanker Kulit dalam Dataset HAM10000", width=800)
+
+    # Define the classes and their corresponding file names (assuming .jpeg and in 'asset/samples/' folder)
+    class_info = {
+        "akiec": "Actinic Keratoses",
+        "bcc": "Basal Cell Carcinoma",
+        "bkl": "Benign Keratosis-like Lesions",
+        "df": "Dermatofibroma",
+        "mel": "Melanoma",
+        "nv": "Melanocytic Nevi",
+        "vasc": "Vascular Lesions"
+    }
+    
+    # Optional: Set a uniform width for sample images to ensure consistent display.
+    # Adjust this value as needed based on your pre-processed image sizes.
+    IMAGE_DISPLAY_WIDTH = 250 
+
+    for label_key, class_name in class_info.items():
+        image_path = f"asset/Sampel Dataset/{label_key}.jpg" # Adjust path and extension if needed
+        if os.path.exists(image_path):
+            st.markdown(f"**Kelas: {class_name} ({label_key})**")
+            st.image(image_path, caption=f"Contoh citra {class_name}", width=IMAGE_DISPLAY_WIDTH)
+            st.markdown("---")
+        else:
+            st.warning(f"Gambar sampel untuk kelas '{class_name}' tidak ditemukan di: {image_path}")
 
     st.subheader("Distribusi Data per Kelas")
     data_dist_df = pd.DataFrame({
         "No": [1, 2, 3, 4, 5, 6, 7],
         "Label": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
         "Nama Kelas": [
-            "Actinic Keratoses and Intraepithelial Carcinoma / Bowen's Disease",
+            "Actinic Keratoses",
             "Basal Cell Carcinoma",
             "Benign Keratosis-like Lesions",
             "Dermatofibroma",
@@ -499,6 +520,25 @@ elif menu == "Dataset HAM10000":
         "Jumlah Data": [327, 514, 1099, 115, 1113, 6705, 142]
     })
     st.table(data_dist_df.set_index("No"))
+
+    # New table for data split and validation data
+    st.subheader("Pembagian Data Latih, Validasi, dan Uji")
+    split_data = {
+        "No": [1, 2, 3, 4, 5, 6, 7, "Total"],
+        "Ragam Kelas": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc", ""],
+        "Jumlah di Data Train": [262, 411, 879, 92, 890, 5364, 114, 8012],
+        "Jumlah di Data Test": [65, 103, 220, 23, 223, 1341, 28, 2003],
+    }
+
+    # Calculate "Jumlah di Data Validasi" (20% of "Jumlah di Data Train")
+    train_data_counts = [262, 411, 879, 92, 890, 5364, 114]
+    validation_data_counts = [round(0.20 * count) for count in train_data_counts]
+    validation_data_counts.append(sum(validation_data_counts)) # Add total for validation
+
+    split_data["Jumlah di Data Validasi"] = validation_data_counts
+
+    split_df = pd.DataFrame(split_data)
+    st.table(split_df.set_index("No"))
 
 # ===================== PELATIHAN =====================
 elif menu == "Pelatihan Model":
