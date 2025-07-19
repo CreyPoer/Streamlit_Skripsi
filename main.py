@@ -969,44 +969,63 @@ elif menu == "Evaluasi Model":
         st.markdown("---")
 
 # ===================== PREDIKSI =====================
+# ===================== PREDIKSI =====================
 elif menu == "Prediksi":
     st.title("Prediksi Kanker Kulit dari Gambar")
 
-    model_file = st.file_uploader("Unggah model (.keras)", type=["keras"])
-    if model_file:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".keras") as tmp:
-            tmp.write(model_file.read())
-            tmp_path = tmp.name
+    # Path to your pre-loaded model
+    # Pastikan Anda sudah menyimpan model terbaik (misal: dari Skenario 1)
+    # ke dalam folder asset/models/ dengan nama 'best_mobilenetv2_model.keras'
+    PRE_LOADED_MODEL_PATH = "best_model.keras" 
 
-        model = load_model(tmp_path)
-        model.compile(optimizer=SGD(learning_rate=0.001, momentum=0.9),
-                      loss="sparse_categorical_crossentropy",
-                      metrics=["accuracy"])
-        st.success("Model berhasil dimuat.")
+    model = None # Initialize model variable
 
-        uploaded_image = st.file_uploader("Upload gambar kulit", type=["jpg", "jpeg", "png"])
+    if os.path.exists(PRE_LOADED_MODEL_PATH):
+        try:
+            model = load_model(PRE_LOADED_MODEL_PATH)
+            # Re-compile the model with the same optimizer and loss as during training
+            # This is crucial if you saved only weights or if the optimizer state matters
+            model.compile(optimizer=SGD(learning_rate=0.001, momentum=0.9),
+                          loss="sparse_categorical_crossentropy",
+                          metrics=["accuracy"])
+            st.success("Model klasifikasi telah berhasil dimuat secara otomatis.")
+        except Exception as e:
+            st.error(f"Gagal memuat model: {e}. Pastikan file model benar dan tidak rusak.")
+            model = None
+    else:
+        st.warning("File model tidak ditemukan. Pastikan 'best_mobilenetv2_model.keras' ada di direktori 'asset/models/'.")
+
+
+    if model: # Only proceed if model was loaded successfully
+        uploaded_image = st.file_uploader("Unggah gambar kulit Anda untuk diprediksi", type=["jpg", "jpeg", "png"])
         if uploaded_image:
             image = Image.open(uploaded_image).convert("RGB")
-            st.image(image, caption="Gambar Asli")
+            st.image(image, caption="Gambar Asli", use_column_width=True)
 
-            if st.button("Preprocessing"):
-                resized = image.resize((64, 64))
-                arr = np.expand_dims(np.array(resized) / 255.0, axis=0)
-                st.session_state["img_array"] = arr
-                st.session_state["img_resized"] = resized
-                st.success("Preprocessing selesai.")
-
-            if "img_array" in st.session_state:
-                st.image(st.session_state["img_resized"], caption="Gambar Resize")
-                if st.button("Prediksi"):
-                    pred = model.predict(st.session_state["img_array"])
-                    idx = np.argmax(pred)
-                    label = label_encoder.inverse_transform([idx])[0]
-                    st.subheader("Hasil Prediksi")
-                    st.write(f"Label: **{label}**")
-                    st.write(f"Probabilitas: {np.max(pred) * 100:.2f}%")
+            # Preprocessing happens automatically before prediction
+            # No need for a separate "Preprocessing" button for end-users
+            
+            st.subheader("Memproses dan Memprediksi...")
+            
+            # Perform preprocessing steps
+            resized = image.resize((64, 64))
+            # Ensure the image array is scaled correctly (0-1) as the model expects
+            arr = np.expand_dims(np.array(resized) / 255.0, axis=0) 
+            
+            # Predict
+            pred = model.predict(arr)
+            idx = np.argmax(pred)
+            
+            # Inverse transform the predicted label
+            # Ensure label_encoder is accessible here (it's global in your main.py)
+            label = label_encoder.inverse_transform([idx])[0]
+            
+            st.subheader("Hasil Prediksi")
+            st.write(f"Jenis Kanker Kulit yang Diprediksi: **{label.upper()}**") # Uppercase for clarity
+            st.write(f"Keyakinan Model: **{np.max(pred) * 100:.2f}%**")
+            st.info("Catatan: Prediksi ini hanya untuk tujuan informasi dan tidak menggantikan diagnosis medis profesional.")
     else:
-        st.info("Silakan unggah model terlebih dahulu.")
+        st.info("Model klasifikasi belum siap. Silakan periksa konfigurasi aplikasi.")
 
 # ===================== TENTANG =====================
 elif menu == "Tentang Penelitian":
