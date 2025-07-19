@@ -473,7 +473,7 @@ elif menu == "Dataset HAM10000":
 
     # Define the classes and their corresponding file names (assuming .jpeg and in 'asset/samples/' folder)
     class_info = {
-        "akiec": "Actinic Keratoses",
+        "akiec": "Actinic Keratoses and Intraepithelial Carcinoma / Bowen's Disease",
         "bcc": "Basal Cell Carcinoma",
         "bkl": "Benign Keratosis-like Lesions",
         "df": "Dermatofibroma",
@@ -487,7 +487,7 @@ elif menu == "Dataset HAM10000":
     IMAGE_DISPLAY_WIDTH = 250 
 
     for label_key, class_name in class_info.items():
-        image_path = f"asset/Sampel Dataset/{label_key}.jpg" # Adjust path and extension if needed
+        image_path = f"asset/samples/{label_key}.jpeg" # Adjust path and extension if needed
         if os.path.exists(image_path):
             st.markdown(f"**Kelas: {class_name} ({label_key})**")
             st.image(image_path, caption=f"Contoh citra {class_name}", width=IMAGE_DISPLAY_WIDTH)
@@ -500,7 +500,7 @@ elif menu == "Dataset HAM10000":
         "No": [1, 2, 3, 4, 5, 6, 7],
         "Label": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
         "Nama Kelas": [
-            "Actinic Keratoses",
+            "Actinic Keratoses and Intraepithelial Carcinoma / Bowen's Disease",
             "Basal Cell Carcinoma",
             "Benign Keratosis-like Lesions",
             "Dermatofibroma",
@@ -513,7 +513,7 @@ elif menu == "Dataset HAM10000":
             "Kanker kulit jenis non-melanoma yang paling umum.",
             "Jenis lesi kulit jinak yang sering diduga termasuk kedalam jenis kanker kulit karena serupa.",
             "Lesi kulit jinak yang sering ditemukan di kaki atau tangan.",
-            "Jenis kanker yang sangat mudah menyebar dan sangat berbahaya.",
+            "Jenis kanker yang sangat mudah menyebar dan sering ditemukan di kaki atau tangan.",
             "Lesi kulit jinak yang sering disebut Tahi Lalat.",
             "Termasuk kedalam lesi vaskular seperti angioma atau hemangioma."
         ],
@@ -523,19 +523,26 @@ elif menu == "Dataset HAM10000":
 
     # New table for data split and validation data
     st.subheader("Pembagian Data Latih, Validasi, dan Uji")
+    
+    # Raw data for training and testing
+    train_counts = [262, 411, 879, 92, 890, 5364, 114]
+    test_counts = [65, 103, 220, 23, 223, 1341, 28]
+
+    # Calculate "Data Latih" (80% of "Jumlah di Data Train")
+    data_latih_counts = [round(0.80 * count) for count in train_counts]
+    
+    # Calculate "Data Validasi" (20% of "Jumlah di Data Train")
+    data_validasi_counts = [round(0.20 * count) for count in train_counts]
+
+    # Combine into a dictionary for DataFrame
     split_data = {
         "No": [1, 2, 3, 4, 5, 6, 7, "Total"],
         "Ragam Kelas": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc", ""],
-        "Jumlah di Data Train": [262, 411, 879, 92, 890, 5364, 114, 8012],
-        "Jumlah di Data Test": [65, 103, 220, 23, 223, 1341, 28, 2003],
+        "Data Train": train_counts + [sum(train_counts)],
+        "Data Latih (80%)": data_latih_counts + [sum(data_latih_counts)],
+        "Data Validasi (20%)": data_validasi_counts + [sum(data_validasi_counts)],
+        "Data Test": test_counts + [sum(test_counts)],
     }
-
-    # Calculate "Jumlah di Data Validasi" (20% of "Jumlah di Data Train")
-    train_data_counts = [262, 411, 879, 92, 890, 5364, 114]
-    validation_data_counts = [round(0.20 * count) for count in train_data_counts]
-    validation_data_counts.append(sum(validation_data_counts)) # Add total for validation
-
-    split_data["Jumlah di Data Validasi"] = validation_data_counts
 
     split_df = pd.DataFrame(split_data)
     st.table(split_df.set_index("No"))
