@@ -470,7 +470,9 @@ elif menu == "Dataset HAM10000":
     """)
 
     st.subheader("Sampel Gambar per Kelas")
-    st.image("asset/sampelperkelas.png", caption="Contoh Gambar untuk Setiap Kelas Kanker Kulit dalam Dataset HAM10000", width=200)
+    st.image("asset/sampelperkelas.png", caption="Contoh Gambar untuk Setiap Kelas Kanker Kulit dalam Dataset HAM10000", width=1000)
+    st.image("asset/sampelperkelas.png", caption="Contoh Gambar untuk Setiap Kelas Kanker Kulit dalam Dataset HAM10000", width=1500)
+    st.image("asset/sampelperkelas.png", caption="Contoh Gambar untuk Setiap Kelas Kanker Kulit dalam Dataset HAM10000", width=800)
 
     st.subheader("Distribusi Data per Kelas")
     data_dist_df = pd.DataFrame({
