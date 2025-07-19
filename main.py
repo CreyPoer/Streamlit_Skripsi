@@ -1000,7 +1000,7 @@ elif menu == "Prediksi":
         uploaded_image = st.file_uploader("Unggah gambar kulit Anda untuk diprediksi", type=["jpg", "jpeg", "png"])
         if uploaded_image:
             image = Image.open(uploaded_image).convert("RGB")
-            st.image(image, caption="Gambar Asli", use_column_width=True)
+            st.image(image, caption="Gambar Asli", use_container_width=True)
 
             # Preprocessing happens automatically before prediction
             # No need for a separate "Preprocessing" button for end-users
