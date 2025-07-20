@@ -1047,7 +1047,7 @@ elif menu == "💡 Tentang Penelitian":
     - **Nama:** Soni Indra Maulana
     - **NIM:** 210411100136
     - **Institusi:** Universitas Trunojoyo Madura
-    - **Pembimbing:** (Opsional)
+    - **Pembimbing:** 
       - Pembimbing 1: Prof. Arif Muntasa, S.Si., M.T.
       - Pembimbing 2: Prof. Rima Tri Wahyuningrum, S.T., M.T.
 
