@@ -513,7 +513,7 @@ elif menu == "📊 Dataset HAM10000":
     IMAGE_DISPLAY_WIDTH = 250 
 
     for label_key, class_name in class_info.items():
-        image_path = f"asset/Sampel Dataset/{label_key}.jpeg" # Adjust path and extension if needed
+        image_path = f"asset/Sampel Dataset/{label_key}.jpg" # Adjust path and extension if needed
         if os.path.exists(image_path):
             st.markdown(f"**Kelas: {class_name} ({label_key})**")
             st.image(image_path, caption=f"Contoh citra {class_name}", width=IMAGE_DISPLAY_WIDTH)
