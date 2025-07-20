@@ -10,20 +10,46 @@ import tempfile
 import os
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.utils import img_to_array
-from tensorflow.keras.preprocessing.image import ImageDataGenerator # Import tambahan
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+# --- Konfigurasi Halaman Streamlit ---
+st.set_page_config(
+    page_title="Classification Of Skin Cancer With Random Oversampling Using Mobilenetv2", # Ini adalah judul yang akan muncul di tab browser
+    page_icon="🔬", # Opsional: Tambahkan ikon di tab browser
+    layout="wide", # Opsional: Mengatur layout halaman menjadi lebar
+    initial_sidebar_state="expanded" # Opsional: Mengatur sidebar agar terbuka saat pertama kali dimuat
+)
+# --- Akhir Konfigurasi Halaman Streamlit ---
+
 
 # Sidebar Navigation
 menu = st.sidebar.selectbox(
     "Pilih Halaman",
-    ("Beranda", "Preprocessing", "Dataset HAM10000", "Pelatihan Model", "Evaluasi Model", "Prediksi", "Tentang Penelitian")
+    (
+        "🏠 Beranda",           # Home icon
+        "⚙️ Preprocessing",      # Gear/settings for processing
+        "📊 Dataset HAM10000",   # Bar chart or spreadsheet for data
+        "🧠 Pelatihan Model",    # Brain or lightbulb for training/learning
+        "📈 Evaluasi Model",     # Chart/graph for evaluation
+        "🔮 Prediksi",           # Crystal ball for prediction
+        "💡 Tentang Penelitian"  # Lightbulb or info icon for about
+    )
 )
 
 label_encoder = LabelEncoder()
 label_encoder.classes_ = np.array(['akiec', 'bcc', 'bkl', 'df', 'mel', 'nv', 'vasc'])
 
 # ===================== BERANDA =====================
-if menu == "Beranda":
+if menu == "🏠 Beranda":
     st.title("Implementasi Random Oversampling pada Klasifikasi Kanker Kulit pada Citra Dermoskopi Menggunakan Metode MobileNetV2")
+
+    st.markdown("""
+    Aplikasi Streamlit ini berfungsi sebagai **prototipe sistem klasifikasi otomatis untuk kanker kulit pada citra dermoskopi**, yang secara khusus dikembangkan untuk mendemonstrasikan dan mengevaluasi dampak dari penerapan teknik **Random Oversampling (ROS)** dalam mengatasi ketidakseimbangan data pada dataset HAM10000, serta menganalisis efektivitas pendekatan **transfer learning** menggunakan arsitektur MobileNetV2 dibandingkan dengan pelatihan model dari awal (from scratch). Tujuan pokok dari pembuatan aplikasi ini adalah untuk **menyajikan secara interaktif hasil penelitian** terkait upaya peningkatan akurasi dan generalisasi model klasifikasi kanker kulit, sehingga pemahaman terhadap proses preprocessing, pelatihan, evaluasi, dan prediksi menjadi lebih jelas dan mudah diakses oleh pengguna.
+
+    Aplikasi Streamlit ini dirancang untuk klasifikasi kanker kulit pada citra dermoskopi menggunakan model MobileNetV2, dengan fokus pada penanganan ketidakseimbangan data. Sistem ini terbagi menjadi beberapa bagian utama: **Beranda** yang memperkenalkan latar belakang, pertanyaan, tujuan, batasan, perancangan sistem, dan skenario uji coba penelitian; **Preprocessing** yang menjelaskan tahapan persiapan data seperti *resize*, transformasi, *label encoding*, *random oversampling (ROS)* untuk menyeimbangkan data, de-transformasi, serta augmentasi dan normalisasi gambar; **Dataset HAM10000** yang memberikan detail tentang dataset yang digunakan, termasuk sampel gambar per kelas dan tabel distribusi data.
+
+    Selanjutnya, aplikasi ini memiliki bagian **Pelatihan Model** yang menguraikan dua pendekatan pelatihan (CNN manual dari *scratch* dan *transfer learning* dengan MobileNetV2 pre-trained ImageNet, keduanya dievaluasi menggunakan 5-Fold Cross Validation); **Evaluasi Model** yang menyajikan hasil pengujian komprehensif dari delapan skenario berbeda, termasuk metrik akurasi, presisi, *recall*, F1-score, kurva ROC, dan *confusion matrix*; dan terakhir, bagian **Prediksi** yang memungkinkan pengguna mengunggah model `.keras` dan citra kulit untuk mendapatkan prediksi jenis kanker kulit. Aplikasi ini secara keseluruhan memberikan gambaran lengkap tentang proses penelitian, mulai dari persiapan data hingga evaluasi model dan implementasi prediksi.
+    """)
 
     st.markdown("""
     ### Latar Belakang
@@ -87,7 +113,7 @@ if menu == "Beranda":
 
 
 # ===================== PREPROCESSING =====================
-elif menu == "Preprocessing":
+elif menu == "⚙️ Preprocessing":
 
     st.title("Preprocessing Data")
 
@@ -195,7 +221,7 @@ elif menu == "Preprocessing":
         with col2:
             st.markdown("**Channel Hijau (G):**")
             green_only = np.zeros_like(resized_image)
-            green_only[:, :, 1] = resized_image[:, :, 1] * 255
+            green_only[:, :, 0] = resized_image[:, :, 1] * 255
             st.image(green_only.astype("uint8"), caption="Hijau (dalam RGB)")
             st.caption(f"Ukuran: {resized_image[:, :, 1].shape}")
             st.code(f"{G[:10]} ...")
@@ -203,7 +229,7 @@ elif menu == "Preprocessing":
         with col3:
             st.markdown("**Channel Biru (B):**")
             blue_only = np.zeros_like(resized_image)
-            blue_only[:, :, 2] = resized_image[:, :, 2] * 255
+            blue_only[:, :, 0] = resized_image[:, :, 2] * 255
             st.image(blue_only.astype("uint8"), caption="Biru (dalam RGB)")
             st.caption(f"Ukuran: {resized_image[:, :, 2].shape}")
             st.code(f"{B[:10]} ...")
@@ -458,7 +484,7 @@ val_datagen = ImageDataGenerator(rescale=1./255) # Validasi hanya dinormalisasi,
         st.warning("Gambar contoh tidak ditemukan. Pastikan `gambarpreprocessing.jpg` tersedia.")
 
 # ===================== DATASET HAM10000 =====================
-elif menu == "Dataset HAM10000":
+elif menu == "📊 Dataset HAM10000":
     st.title("Dataset HAM10000: Skin Cancer MNIST")
 
     st.markdown("""
@@ -487,7 +513,7 @@ elif menu == "Dataset HAM10000":
     IMAGE_DISPLAY_WIDTH = 250 
 
     for label_key, class_name in class_info.items():
-        image_path = f"asset/Sampel Dataset/{label_key}.jpg" # Adjust path and extension if needed
+        image_path = f"asset/Sampel Dataset/{label_key}.jpeg" # Adjust path and extension if needed
         if os.path.exists(image_path):
             st.markdown(f"**Kelas: {class_name} ({label_key})**")
             st.image(image_path, caption=f"Contoh citra {class_name}", width=IMAGE_DISPLAY_WIDTH)
@@ -501,23 +527,14 @@ elif menu == "Dataset HAM10000":
         "Label": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
         "Nama Kelas": [
             "Actinic Keratoses and Intraepithelial Carcinoma / Bowen's Disease",
-            "Basal Cell Carcinoma",
+            "Basal Cell carcinoma",
             "Benign Keratosis-like Lesions",
             "Dermatofibroma",
             "Melanoma",
             "Melanocytic Nevi",
             "Vascular Lesions"
         ],
-        "Deskripsi": [
-            "Prakanker kulit atau tahap awal kanker kulit akibat paparan sinar UV.",
-            "Kanker kulit jenis non-melanoma yang paling umum.",
-            "Jenis lesi kulit jinak yang sering diduga termasuk kedalam jenis kanker kulit karena serupa.",
-            "Lesi kulit jinak yang sering ditemukan di kaki atau tangan.",
-            "Jenis kanker yang sangat mudah menyebar dan sering ditemukan di kaki atau tangan.",
-            "Lesi kulit jinak yang sering disebut Tahi Lalat.",
-            "Termasuk kedalam lesi vaskular seperti angioma atau hemangioma."
-        ],
-        "Jumlah Data": [327, 514, 1099, 115, 1113, 6705, 142]
+        "Total Data": [327, 514, 1099, 115, 1113, 6705, 142] 
     })
     st.table(data_dist_df.set_index("No"))
 
@@ -528,18 +545,16 @@ elif menu == "Dataset HAM10000":
     train_counts = [262, 411, 879, 92, 890, 5364, 114]
     test_counts = [65, 103, 220, 23, 223, 1341, 28]
 
-    # Calculate "Data Latih" (80% of "Jumlah di Data Train")
-    data_latih_counts = [round(0.80 * count) for count in train_counts]
-    
-    # Calculate "Data Validasi" (20% of "Jumlah di Data Train")
+    # Calculate "Data Latih (80%)" and "Data Validasi (20%)" from the original "Data Train"
+    data_latih_subset_counts = [round(0.80 * count) for count in train_counts]
     data_validasi_counts = [round(0.20 * count) for count in train_counts]
 
     # Combine into a dictionary for DataFrame
     split_data = {
         "No": [1, 2, 3, 4, 5, 6, 7, "Total"],
-        "Ragam Kelas": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc", ""],
+        "Ragam Kelas": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc", "Total"],
         "Data Train": train_counts + [sum(train_counts)],
-        "Data Latih (80%)": data_latih_counts + [sum(data_latih_counts)],
+        "Data Latih (80%)": data_latih_subset_counts + [sum(data_latih_subset_counts)],
         "Data Validasi (20%)": data_validasi_counts + [sum(data_validasi_counts)],
         "Data Test": test_counts + [sum(test_counts)],
     }
@@ -548,7 +563,7 @@ elif menu == "Dataset HAM10000":
     st.table(split_df.set_index("No"))
 
 # ===================== PELATIHAN =====================
-elif menu == "Pelatihan Model":
+elif menu == "🧠 Pelatihan Model":
     st.title("Pelatihan Model Klasifikasi Citra Kanker Kulit")
 
     st.markdown("""
@@ -674,7 +689,7 @@ def create_tl_model():
 
 
 # ===================== EVALUASI =====================
-elif menu == "Evaluasi Model":
+elif menu == "📈 Evaluasi Model":
     st.title("Evaluasi Model Berdasarkan Skenario Uji Coba")
 
     st.markdown("""
@@ -969,8 +984,7 @@ elif menu == "Evaluasi Model":
         st.markdown("---")
 
 # ===================== PREDIKSI =====================
-# ===================== PREDIKSI =====================
-elif menu == "Prediksi":
+elif menu == "🔮 Prediksi":
     st.title("Prediksi Kanker Kulit dari Gambar")
 
     # Path to your pre-loaded model
@@ -1000,7 +1014,7 @@ elif menu == "Prediksi":
         uploaded_image = st.file_uploader("Unggah gambar kulit Anda untuk diprediksi", type=["jpg", "jpeg", "png"])
         if uploaded_image:
             image = Image.open(uploaded_image).convert("RGB")
-            st.image(image, caption="Gambar Asli", use_container_width=True)
+            st.image(image, caption="Gambar Asli", use_container_width=True) # Updated parameter
 
             # Preprocessing happens automatically before prediction
             # No need for a separate "Preprocessing" button for end-users
@@ -1028,7 +1042,7 @@ elif menu == "Prediksi":
         st.info("Model klasifikasi belum siap. Silakan periksa konfigurasi aplikasi.")
 
 # ===================== TENTANG =====================
-elif menu == "Tentang Penelitian":
+elif menu == "💡 Tentang Penelitian":
     st.title("Tentang Penelitian")
 
     st.markdown("""
