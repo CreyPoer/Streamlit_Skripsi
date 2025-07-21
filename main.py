@@ -43,7 +43,7 @@ label_encoder.classes_ = np.array(['akiec', 'bcc', 'bkl', 'df', 'mel', 'nv', 'va
 # Ini diambil langsung dari data yang Anda berikan di menu "Dataset HAM10000"
 CLASS_DETAILS = {
     "akiec": {
-        "nama_panjang": "Actinic Keratoses and Intraepithelial Carcinoma / Bowen's Disease",
+        "nama_panjang": "Actinic Keratoses",
         "deskripsi": "Prakanker kulit atau tahap awal kanker kulit akibat paparan sinar UV."
     },
     "bcc": {
@@ -68,7 +68,7 @@ CLASS_DETAILS = {
     },
     "vasc": {
         "nama_panjang": "Vascular Lesions",
-        "deskripsi": "Termasuk kedalam lesi vaskular seperti angioma atau hemangioma."
+        "deskripsi": "Termasuk kedalam lesi vaskular yaitu lesi yang berhubungan dengan pembuluh darah"
     }
 }
 
@@ -544,7 +544,7 @@ elif menu == "📊 Dataset HAM10000":
     
     # Optional: Set a uniform width for sample images to ensure consistent display.
     # Adjust this value as needed based on your pre-processed image sizes.
-    IMAGE_DISPLAY_WIDTH = 250 
+    IMAGE_DISPLAY_WIDTH = 350 
 
     for label_key, class_name in class_info.items():
         image_path = f"asset/Sampel Dataset/{label_key}.jpg" # Adjust path and extension if needed
@@ -559,15 +559,8 @@ elif menu == "📊 Dataset HAM10000":
     data_dist_df = pd.DataFrame({
         "No": [1, 2, 3, 4, 5, 6, 7],
         "Label": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
-        "Nama Kelas": [
-            "Actinic Keratoses",
-            "Basal Cell carcinoma",
-            "Benign Keratosis-like Lesions",
-            "Dermatofibroma",
-            "Melanoma",
-            "Melanocytic Nevi",
-            "Vascular Lesions"
-        ],
+        "Nama Kelas": [details["nama_panjang"] for details in CLASS_DETAILS.values()],
+        "Deskripsi": [details["deskripsi"] for details in CLASS_DETAILS.values()], # Menambahkan kolom Deskripsi di sini
         "Total Data": [327, 514, 1099, 115, 1113, 6705, 142] 
     })
     st.table(data_dist_df.set_index("No"))
