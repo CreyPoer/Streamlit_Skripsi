@@ -14,7 +14,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 # --- Konfigurasi Halaman Streamlit ---
 st.set_page_config(
-    page_title="Classification Of Skin Cancer With Random Oversampling Using Mobilenetv2", # Ini adalah judul yang akan muncul di tab browser
+    page_title="Klasifikasi Kanker Kulit Dermoskopi", # Ini adalah judul yang akan muncul di tab browser
     page_icon="🔬", # Opsional: Tambahkan ikon di tab browser
     layout="wide", # Opsional: Mengatur layout halaman menjadi lebar
     initial_sidebar_state="expanded" # Opsional: Mengatur sidebar agar terbuka saat pertama kali dimuat
@@ -39,6 +39,40 @@ menu = st.sidebar.selectbox(
 label_encoder = LabelEncoder()
 label_encoder.classes_ = np.array(['akiec', 'bcc', 'bkl', 'df', 'mel', 'nv', 'vasc'])
 
+# Data untuk mapping label dan deskripsi
+# Ini diambil langsung dari data yang Anda berikan di menu "Dataset HAM10000"
+CLASS_DETAILS = {
+    "akiec": {
+        "nama_panjang": "Actinic Keratoses and Intraepithelial Carcinoma / Bowen's Disease",
+        "deskripsi": "Prakanker kulit atau tahap awal kanker kulit akibat paparan sinar UV."
+    },
+    "bcc": {
+        "nama_panjang": "Basal Cell Carcinoma",
+        "deskripsi": "Kanker kulit jenis non-melanoma yang paling umum."
+    },
+    "bkl": {
+        "nama_panjang": "Benign Keratosis-like Lesions",
+        "deskripsi": "Jenis lesi kulit jinak yang sering diduga termasuk kedalam jenis kanker kulit karena serupa."
+    },
+    "df": {
+        "nama_panjang": "Dermatofibroma",
+        "deskripsi": "Lesi kulit jinak yang sering ditemukan di kaki atau tangan."
+    },
+    "mel": {
+        "nama_panjang": "Melanoma",
+        "deskripsi": "Jenis kanker yang sangat mudah menyebar dan sangat berbahaya."
+    },
+    "nv": {
+        "nama_panjang": "Melanocytic Nevi",
+        "deskripsi": "Lesi kulit jinak yang sering disebut Tahi Lalat."
+    },
+    "vasc": {
+        "nama_panjang": "Vascular Lesions",
+        "deskripsi": "Termasuk kedalam lesi vaskular seperti angioma atau hemangioma."
+    }
+}
+
+
 # ===================== BERANDA =====================
 if menu == "🏠 Beranda":
     st.title("Implementasi Random Oversampling pada Klasifikasi Kanker Kulit pada Citra Dermoskopi Menggunakan Metode MobileNetV2")
@@ -46,6 +80,9 @@ if menu == "🏠 Beranda":
     st.markdown("""
     Aplikasi Streamlit ini berfungsi sebagai **prototipe sistem klasifikasi otomatis untuk kanker kulit pada citra dermoskopi**, yang secara khusus dikembangkan untuk mendemonstrasikan dan mengevaluasi dampak dari penerapan teknik **Random Oversampling (ROS)** dalam mengatasi ketidakseimbangan data pada dataset HAM10000, serta menganalisis efektivitas pendekatan **transfer learning** menggunakan arsitektur MobileNetV2 dibandingkan dengan pelatihan model dari awal (from scratch). Tujuan pokok dari pembuatan aplikasi ini adalah untuk **menyajikan secara interaktif hasil penelitian** terkait upaya peningkatan akurasi dan generalisasi model klasifikasi kanker kulit, sehingga pemahaman terhadap proses preprocessing, pelatihan, evaluasi, dan prediksi menjadi lebih jelas dan mudah diakses oleh pengguna.
 
+    Aplikasi Streamlit ini dirancang untuk klasifikasi kanker kulit pada citra dermoskopi menggunakan model MobileNetV2, dengan fokus pada penanganan ketidakseimbangan data. Sistem ini terbagi menjadi beberapa bagian utama: **Beranda** yang memperkenalkan latar belakang, pertanyaan, tujuan, batasan, perancangan sistem, dan skenario uji coba penelitian; **Preprocessing** yang menjelaskan tahapan persiapan data seperti *resize*, transformasi, *label encoding*, *random oversampling (ROS)* untuk menyeimbangkan data, de-transformasi, serta augmentasi dan normalisasi gambar; **Dataset HAM10000** yang memberikan detail tentang dataset yang digunakan, termasuk sampel gambar per kelas dan tabel distribusi data.
+
+    Selanjutnya, aplikasi ini memiliki bagian **Pelatihan Model** yang menguraikan dua pendekatan pelatihan (CNN manual dari *scratch* dan *transfer learning* dengan MobileNetV2 pre-trained ImageNet, keduanya dievaluasi menggunakan 5-Fold Cross Validation); **Evaluasi Model** yang menyajikan hasil pengujian komprehensif dari delapan skenario berbeda, termasuk metrik akurasi, presisi, *recall*, F1-score, kurva ROC, dan *confusion matrix*; dan terakhir, bagian **Prediksi** yang memungkinkan pengguna mengunggah model `.keras` dan citra kulit untuk mendapatkan prediksi jenis kanker kulit. Aplikasi ini secara keseluruhan memberikan gambaran lengkap tentang proses penelitian, mulai dari persiapan data hingga evaluasi model dan implementasi prediksi.
     """)
 
     st.markdown("""
@@ -496,7 +533,7 @@ elif menu == "📊 Dataset HAM10000":
 
     # Define the classes and their corresponding file names (assuming .jpeg and in 'asset/samples/' folder)
     class_info = {
-        "akiec": "Actinic Keratoses and Intraepithelial Carcinoma / Bowen's Disease",
+        "akiec": "Actinic Keratoses",
         "bcc": "Basal Cell Carcinoma",
         "bkl": "Benign Keratosis-like Lesions",
         "df": "Dermatofibroma",
@@ -523,7 +560,7 @@ elif menu == "📊 Dataset HAM10000":
         "No": [1, 2, 3, 4, 5, 6, 7],
         "Label": ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"],
         "Nama Kelas": [
-            "Actinic Keratoses and Intraepithelial Carcinoma / Bowen's Disease",
+            "Actinic Keratoses",
             "Basal Cell carcinoma",
             "Benign Keratosis-like Lesions",
             "Dermatofibroma",
@@ -1011,11 +1048,8 @@ elif menu == "🔮 Prediksi":
         uploaded_image = st.file_uploader("Unggah gambar kulit Anda untuk diprediksi", type=["jpg", "jpeg", "png"])
         if uploaded_image:
             image = Image.open(uploaded_image).convert("RGB")
-            st.image(image, caption="Gambar Asli", use_container_width=True) # Updated parameter
+            st.image(image, caption="Gambar Asli", use_container_width=True) 
 
-            # Preprocessing happens automatically before prediction
-            # No need for a separate "Preprocessing" button for end-users
-            
             st.subheader("Memproses dan Memprediksi...")
             
             # Perform preprocessing steps
@@ -1027,12 +1061,17 @@ elif menu == "🔮 Prediksi":
             pred = model.predict(arr)
             idx = np.argmax(pred)
             
-            # Inverse transform the predicted label
-            # Ensure label_encoder is accessible here (it's global in your main.py)
-            label = label_encoder.inverse_transform([idx])[0]
+            # Get the short label
+            short_label = label_encoder.inverse_transform([idx])[0]
             
+            # Get the long name and description using the CLASS_DETAILS dictionary
+            long_name = CLASS_DETAILS.get(short_label, {}).get("nama_panjang", "Tidak diketahui")
+            description = CLASS_DETAILS.get(short_label, {}).get("deskripsi", "Deskripsi tidak tersedia.")
+
             st.subheader("Hasil Prediksi")
-            st.write(f"Jenis Kanker Kulit yang Diprediksi: **{label.upper()}**") # Uppercase for clarity
+            st.write(f"Label Singkat: **{short_label.upper()}**")
+            st.write(f"Nama Kelas: **{long_name}**")
+            st.write(f"Deskripsi: _{description}_")
             st.write(f"Keyakinan Model: **{np.max(pred) * 100:.2f}%**")
             st.info("Catatan: Prediksi ini hanya untuk tujuan informasi dan tidak menggantikan diagnosis medis profesional.")
     else:
@@ -1047,7 +1086,7 @@ elif menu == "💡 Tentang Penelitian":
     - **Nama:** Soni Indra Maulana
     - **NIM:** 210411100136
     - **Institusi:** Universitas Trunojoyo Madura
-    - **Pembimbing:** 
+    - **Pembimbing:** (Opsional)
       - Pembimbing 1: Prof. Arif Muntasa, S.Si., M.T.
       - Pembimbing 2: Prof. Rima Tri Wahyuningrum, S.T., M.T.
 
