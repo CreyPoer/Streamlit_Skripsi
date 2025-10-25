@@ -24,17 +24,17 @@ st.set_page_config(
 
 # Sidebar Navigation
 menu = st.sidebar.selectbox(
-     "Pilih Halaman",
-     (
-         "🏠 Beranda",
-         "⚙️ Preprocessing",
-         "📊 Dataset HAM10000",
-         "🧠 Pelatihan Model",
-         "📈 Evaluasi Model",
-         "🔮 Prediksi",
-         "💡 Tentang Penelitian"
-     ),
-     key="menu_utama" 
+    "Pilih Halaman",
+    (
+        "🏠 Beranda",
+        "⚙️ Preprocessing",
+        "📊 Dataset HAM10000",
+        "🧠 Pelatihan Model",
+        "📈 Evaluasi Model",
+        "🔮 Prediksi",
+        "💡 Tentang Penelitian"
+    ),
+    key="menu_utama"
 )
 
 label_encoder = LabelEncoder()
