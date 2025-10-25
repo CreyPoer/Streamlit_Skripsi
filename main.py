@@ -2144,7 +2144,6 @@ elif menu == "🔮 Prediksi":
         st.info("Model klasifikasi belum siap. Silakan periksa konfigurasi aplikasi.")
 
 # ===================== TENTANG =====================
-# ===================== TENTANG =====================
 elif menu == "💡 Tentang Penelitian":
     st.title("Tentang Penelitian")
 
